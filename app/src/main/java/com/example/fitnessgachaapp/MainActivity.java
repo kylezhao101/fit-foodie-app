@@ -15,12 +15,18 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.location.Location;
 import android.os.Looper;
+import android.util.Log;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int REQUEST_LOCATION_PERMISSION = 1; // Location permission request code
     private FusedLocationProviderClient fusedLocationClient;
@@ -42,7 +48,21 @@ public class MainActivity extends AppCompatActivity {
         } else {
             startLocationUpdates();
         }
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
     }
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        Log.d("MapReady", "Map is ready and adding marker.");
+        LatLng markerPosition = new LatLng(0, 0);
+        googleMap.addMarker(new MarkerOptions().position(markerPosition).title("Marker"));
+    }
+
+    // Location request and update methods ---------------------------------------------------------
 
     private void createLocationRequest() {
         locationRequest = new LocationRequest.Builder(5000)
@@ -74,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    // Location Permission functions -------------------------------------------------------------------
+    // Location Permission functions ---------------------------------------------------------------
 
     /** @noinspection BooleanMethodIsAlwaysInverted*/
     private boolean hasLocationPermission() {
