@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
 
-    Location currentLocation;
+    private GoogleMap googleMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,18 +61,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         Log.d("MapReady", "Map is ready and adding marker.");
-
-        if(currentLocation == null){
-            LatLng markerPosition = new LatLng(10,100);
+            this.googleMap = googleMap;
+            LatLng markerPosition = new LatLng(10,10);
             googleMap.addMarker(new MarkerOptions().position(markerPosition).title("Marker Location"));
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPosition,5));
-        }
-        //If currentLocation is known, set the map market postition and camera to it.
-        if(currentLocation != null) {
-            LatLng markerPosition = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-            googleMap.addMarker(new MarkerOptions().position(markerPosition).title("Your Location"));
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPosition,5));
-        }
     }
 
     // Location request and update methods ---------------------------------------------------------
@@ -86,12 +78,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 if (locationResult == null) {
+                    Log.e("location result","failed");
                     return;
                 }
                 for (Location location : locationResult.getLocations()) {
                     // Update UI with location data
                     // Example: Use location data here
-                    currentLocation = location;
+                    //If currentLocation is known, set the map market postition and camera to it.
+                    if(locationResult != null) {
+                        LatLng userPosition = new LatLng(location.getLatitude(), location.getLongitude());
+                        googleMap.clear();
+                        googleMap.addMarker(new MarkerOptions().position(userPosition).title("Your Location"));
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userPosition,5));
+                    }
                 }
             }
         };
