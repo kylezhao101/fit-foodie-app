@@ -15,6 +15,7 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -32,6 +33,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FusedLocationProviderClient fusedLocationClient;
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
+
+    Location currentLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,8 +61,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         Log.d("MapReady", "Map is ready and adding marker.");
-        LatLng markerPosition = new LatLng(0, 0);
-        googleMap.addMarker(new MarkerOptions().position(markerPosition).title("Marker"));
+
+        if(currentLocation == null){
+            LatLng markerPosition = new LatLng(10,100);
+            googleMap.addMarker(new MarkerOptions().position(markerPosition).title("Marker Location"));
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPosition,5));
+        }
+        //If currentLocation is known, set the map market postition and camera to it.
+        if(currentLocation != null) {
+            LatLng markerPosition = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+            googleMap.addMarker(new MarkerOptions().position(markerPosition).title("Your Location"));
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPosition,5));
+        }
     }
 
     // Location request and update methods ---------------------------------------------------------
@@ -78,6 +91,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 for (Location location : locationResult.getLocations()) {
                     // Update UI with location data
                     // Example: Use location data here
+                    currentLocation = location;
                 }
             }
         };
@@ -85,7 +99,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @SuppressLint("MissingPermission")
     private void startLocationUpdates() {
         if (!hasLocationPermission()) return;
-
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
     }
 
