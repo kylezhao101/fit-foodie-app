@@ -20,21 +20,29 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.location.Location;
 import android.os.Looper;
 import android.util.Log;
 
+import java.util.ArrayList;
+
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
-
     private static final int REQUEST_LOCATION_PERMISSION = 1; // Location permission request code
     private FusedLocationProviderClient fusedLocationClient;
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
 
     private GoogleMap googleMap;
+    private ArrayList<Object> pathPoints;
+    private long startTime;
+    private float totalDistance;
+    private Location previousLocation;
+    private boolean isTrackingStarted = false;
+    private Marker currentUserLocationMarker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +50,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         setContentView(R.layout.activity_main);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        pathPoints = new ArrayList<>();
 
         createLocationRequest();
         createLocationCallback();
@@ -82,18 +92,43 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     return;
                 }
                 for (Location location : locationResult.getLocations()) {
-                    // Update UI with location data
-                    // Example: Use location data here
-                    //If currentLocation is known, set the map market postition and camera to it.
-                    if(locationResult != null) {
-                        LatLng userPosition = new LatLng(location.getLatitude(), location.getLongitude());
-                        googleMap.clear();
-                        googleMap.addMarker(new MarkerOptions().position(userPosition).title("Your Location"));
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userPosition,5));
+                    if (!isTrackingStarted) {
+                        // This is the first location update
+                        isTrackingStarted = true;
+                        previousLocation = location; // Initialize previousLocation on first update
+                    } else {
+                        // Calculate distance and speed using previousLocation
+                        float distanceBetween = previousLocation.distanceTo(location); // Distance in meters
+                        totalDistance += distanceBetween;
+                        float speed = (location.getSpeed() * 3600) / 1000; // Convert m/s to km/h
+
+                        //update UI
                     }
+
+                    previousLocation = location;
+
+                    //If currentLocation is known, set the map market postition and camera to it.
+                    LatLng userPosition = new LatLng(location.getLatitude(), location.getLongitude());
+                    pathPoints.add(userPosition);
+
+                    // Update or initialize the marker
+                    if (currentUserLocationMarker == null) {
+                        currentUserLocationMarker = googleMap.addMarker(new MarkerOptions().position(userPosition).title("Your Location"));
+                    } else {
+                        currentUserLocationMarker.setPosition(userPosition);
+                    }
+
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userPosition, 17));
                 }
             }
         };
+    }
+    private void startTracking() {
+        pathPoints.clear(); // Clear previous path points
+        totalDistance = 0; // Reset total distance
+        isTrackingStarted = false; // Reset tracking flag
+        startTime = System.currentTimeMillis(); // Reset start time
+        startLocationUpdates(); // Start location updates
     }
     @SuppressLint("MissingPermission")
     private void startLocationUpdates() {
