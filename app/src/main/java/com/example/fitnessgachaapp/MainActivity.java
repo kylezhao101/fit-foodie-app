@@ -6,8 +6,13 @@ import androidx.core.content.ContextCompat;
 import androidx.core.app.ActivityCompat;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.Manifest;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -25,9 +30,13 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.location.Location;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
+import android.widget.Chronometer;
+import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -36,23 +45,36 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
 
+    // UI
     private GoogleMap googleMap;
-    private ArrayList<Object> pathPoints;
-    private long startTime;
+    private ArrayList<Object> pathPoints; // to be used for distance and session paths
+
     private float totalDistance;
-    private Location previousLocation;
-    private boolean isTrackingStarted = false;
+    private Location previousLocation; // to be used for distance and session paths
     private Marker currentUserLocationMarker;
 
+    // Speed calculation
+    private SensorManager sensorManager;
+    private Sensor accelerometerSensor;
+    private boolean isAccelerometerSensorAvailable, itIsNotFirstTime = false;
+    private float currentSpeed = 0f;
+    private float lastX = 0, lastY = 0, lastZ = 0;
+
+    // UI Elements
+    private TextView sessionSpeedView, sessionDistanceView;
+    private Chronometer chronometer;
+    private long pauseOffset;
+    private boolean running; // flag for chronometer
+
+    // Activity lifecycle methods ------------------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        pathPoints = new ArrayList<>(); // to be used for distance and session paths
 
-        pathPoints = new ArrayList<>();
-
+        // initialize location services
         createLocationRequest();
         createLocationCallback();
 
@@ -67,7 +89,86 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
+
+        // initialize sensor services
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) { // check if device has accelerometer
+            accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            isAccelerometerSensorAvailable = true;
+        } else {
+            isAccelerometerSensorAvailable = false;
+        }
+
+        // Initialize UI elements
+        sessionSpeedView = findViewById(R.id.sessionSpeed);
+        sessionDistanceView = findViewById(R.id.sessionDistance);
+        chronometer = findViewById(R.id.chronometer);
+
+        // Start tracking session
+        startTracking();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (isAccelerometerSensorAvailable) {
+            sensorManager.registerListener(accelerometerListener, accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if (!running) {
+            chronometer.setBase(SystemClock.elapsedRealtime() - pauseOffset);
+            chronometer.start();
+            running = true;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (isAccelerometerSensorAvailable) {
+            sensorManager.unregisterListener(accelerometerListener);
+        }
+        if (running) {
+            chronometer.stop();
+            pauseOffset = SystemClock.elapsedRealtime() - chronometer.getBase();
+            running = false;
+        }
+    }
+
+    // Device speed tracking -----------------------------------------------------------------------
+    private final SensorEventListener accelerometerListener = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+
+            if (itIsNotFirstTime) { // first time flag for edge case
+                float xDifference = Math.abs(lastX - event.values[0]);
+                float yDifference = Math.abs(lastY - event.values[1]);
+                float zDifference = Math.abs(lastZ - event.values[2]);
+
+                // filter minor movements if needed
+                float NOISE = (float) 0.0;
+                if (xDifference > NOISE || yDifference > NOISE || zDifference > NOISE) {
+                    // Calculate speed using the change in acceleration
+                    currentSpeed = (xDifference + yDifference + zDifference) / 3;
+
+                    // Update UI
+                    runOnUiThread(() -> {
+                        sessionSpeedView.setText(String.format(Locale.US, "%.2f km/h", currentSpeed));
+                        sessionDistanceView.setText(String.format(Locale.US, "%.2f m", totalDistance));
+                    });
+
+                }
+            }
+            lastX = event.values[0];
+            lastY = event.values[1];
+            lastZ = event.values[2];
+            itIsNotFirstTime = true;
+        }
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
+    };
+
+    // Location request and update methods ---------------------------------------------------------
     @Override
     public void onMapReady(GoogleMap googleMap) {
         Log.d("MapReady", "Map is ready and adding marker.");
@@ -77,8 +178,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPosition,5));
     }
 
-    // Location request and update methods ---------------------------------------------------------
-
     private void createLocationRequest() {
         locationRequest = new LocationRequest.Builder(5000)
                 .build();
@@ -86,38 +185,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void createLocationCallback() {
         locationCallback = new LocationCallback() {
             @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) {
-                    Log.e("location result","failed");
-                    return;
-                }
+            public void onLocationResult(@NonNull LocationResult locationResult) {
                 for (Location location : locationResult.getLocations()) {
-                    if (!isTrackingStarted) {
-                        // This is the first location update
-                        isTrackingStarted = true;
-                        previousLocation = location; // Initialize previousLocation on first update
-                    } else {
-                        // Calculate distance and speed using previousLocation
-                        float distanceBetween = previousLocation.distanceTo(location); // Distance in meters
-                        totalDistance += distanceBetween;
-                        float speed = (location.getSpeed() * 3600) / 1000; // Convert m/s to km/h
-
-                        //update UI
-                    }
-
-                    previousLocation = location;
-
-                    //If currentLocation is known, set the map market postition and camera to it.
+                    //If currentLocation is known, set the map market position and camera to it.
                     LatLng userPosition = new LatLng(location.getLatitude(), location.getLongitude());
                     pathPoints.add(userPosition);
 
-                    // Update or initialize the marker
+                    // Update or initialize the marker for the current user location
                     if (currentUserLocationMarker == null) {
                         currentUserLocationMarker = googleMap.addMarker(new MarkerOptions().position(userPosition).title("Your Location"));
                     } else {
                         currentUserLocationMarker.setPosition(userPosition);
                     }
-
                     googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userPosition, 17));
                 }
             }
@@ -126,9 +205,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void startTracking() {
         pathPoints.clear(); // Clear previous path points
         totalDistance = 0; // Reset total distance
-        isTrackingStarted = false; // Reset tracking flag
-        startTime = System.currentTimeMillis(); // Reset start time
         startLocationUpdates(); // Start location updates
+        if (!running) {
+            chronometer.setBase(SystemClock.elapsedRealtime() - pauseOffset);
+            chronometer.start();
+            running = true;
+        }
+    }
+    private void stopTracking() {
+        if (running) {
+            chronometer.stop();
+            pauseOffset = SystemClock.elapsedRealtime() - chronometer.getBase();
+            running = false;
+        }
     }
     @SuppressLint("MissingPermission")
     private void startLocationUpdates() {
@@ -140,9 +229,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fusedLocationClient.removeLocationUpdates(locationCallback);
     }
 
-
     // Location Permission functions ---------------------------------------------------------------
-
     /** @noinspection BooleanMethodIsAlwaysInverted*/
     private boolean hasLocationPermission() {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
