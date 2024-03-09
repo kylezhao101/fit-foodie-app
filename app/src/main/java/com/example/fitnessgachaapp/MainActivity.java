@@ -198,6 +198,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         currentUserLocationMarker.setPosition(userPosition);
                     }
                     googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userPosition, 17));
+
+                    if (previousLocation != null) {
+                        totalDistance += previousLocation.distanceTo(location); // Calculate distance in meters
+                    }
+                    previousLocation = location;
+
+                    // Update UI with total distance
+                    runOnUiThread(() -> sessionDistanceView.setText(String.format(Locale.US, "%.2f m", totalDistance)));
                 }
             }
         };
