@@ -1,22 +1,26 @@
 package com.example.fitnessgachaapp;
 
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.os.Bundle;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
+public class GachaActivity extends AppCompatActivity implements SensorEventListener {
 
-public class TrackingActivity extends AppCompatActivity implements OnMapReadyCallback {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+    }
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+
     }
 
     @Override
-    public void onMapReady(@NonNull GoogleMap googleMap) {
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
 }
