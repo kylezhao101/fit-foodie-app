@@ -58,14 +58,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final float MET = 8; // used for calorie calculation
     private float weight = 70; // also used for calorie calculation, will be asked in future implementation.
-
-    // Speed calculation
-    private SensorManager sensorManager;
-    private Sensor accelerometerSensor;
-    private boolean isAccelerometerSensorAvailable, itIsNotFirstTime = false;
-    private float currentSpeed = 0f;
-    private float lastX = 0, lastY = 0, lastZ = 0;
-
+  
     // UI Elements
     private TextView sessionSpeedView, sessionDistanceView, sessionCalorieView;
     private Chronometer chronometer;
@@ -94,15 +87,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
-        }
-
-        // initialize sensor services
-        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) { // check if device has accelerometer
-            accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-            isAccelerometerSensorAvailable = true;
-        } else {
-            isAccelerometerSensorAvailable = false;
         }
 
         // Initialize UI elements
@@ -148,9 +132,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onResume() {
         super.onResume();
-        if (isAccelerometerSensorAvailable) {
-            sensorManager.registerListener(accelerometerListener, accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
-        }
         if (!running) {
             chronometer.setBase(SystemClock.elapsedRealtime() - pauseOffset);
             chronometer.start();
@@ -161,54 +142,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onPause() {
         super.onPause();
-        if (isAccelerometerSensorAvailable) {
-            sensorManager.unregisterListener(accelerometerListener);
-        }
         if (running) {
            chronometer.stop();
            pauseOffset = SystemClock.elapsedRealtime() - chronometer.getBase();
             running = false;
         }
     }
-
-
-    // Device speed tracking -----------------------------------------------------------------------
-    private final SensorEventListener accelerometerListener = new SensorEventListener() {
-        @Override
-        public void onSensorChanged(SensorEvent event) {
-
-            if (itIsNotFirstTime) { // first time flag for edge case
-                float xDifference = Math.abs(lastX - event.values[0]);
-                float yDifference = Math.abs(lastY - event.values[1]);
-                float zDifference = Math.abs(lastZ - event.values[2]);
-                double hour = ((SystemClock.elapsedRealtime() - chronometer.getBase()) / 3600000.0);
-
-
-                // filter minor movements if needed
-                float NOISE = (float) 0.0;
-                if (xDifference > NOISE || yDifference > NOISE || zDifference > NOISE) {
-                    // Calculate speed using the change in acceleration
-                    currentSpeed = (xDifference + yDifference + zDifference) / 3;
-
-                    // Update UI
-                    runOnUiThread(() -> {
-                        sessionSpeedView.setText(String.format(Locale.US, "%.2f km/h", currentSpeed));
-                        sessionDistanceView.setText(String.format(Locale.US, "%.2f m", totalDistance));
-                        sessionCalorieView.setText(String.format(Locale.US, "%.2f cal", MET*weight*hour*1.05));
-                    });
-
-                }
-            }
-            lastX = event.values[0];
-            lastY = event.values[1];
-            lastZ = event.values[2];
-            itIsNotFirstTime = true;
-        }
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        }
-    };
-
+  
     // Location request and update methods ---------------------------------------------------------
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -220,17 +160,35 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void createLocationRequest() {
-        locationRequest = new LocationRequest.Builder(5000)
-                .build();
+        locationRequest = LocationRequest.create();
+        locationRequest.setInterval(1000); // Set the desired interval for active location updates
+        locationRequest.setFastestInterval(250); // Set the fastest interval for location updates
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
     private void createLocationCallback() {
         locationCallback = new LocationCallback() {
+            @SuppressLint("SetTextI18n")
             @Override
             public void onLocationResult(@NonNull LocationResult locationResult) {
                 for (Location location : locationResult.getLocations()) {
                     //If currentLocation is known, set the map market position and camera to it.
                     LatLng userPosition = new LatLng(location.getLatitude(), location.getLongitude());
                     pathPoints.add(userPosition);
+
+                    // Check if the location has speed information
+                    if (location.hasSpeed()) {
+                        // Convert speed from meters per second to kilometers per hour
+                        float speedMetersPerSecond = location.getSpeed();
+                        float speedKilometersPerHour = speedMetersPerSecond * 3.6f;
+                        float thresholdKmH = 0.5f;
+                        if (speedKilometersPerHour > thresholdKmH) {
+                            sessionSpeedView.setText(String.format(Locale.US, "%.2f km/h", speedKilometersPerHour));
+                        } else {
+                            sessionSpeedView.setText("0.00 km/h");
+                        }
+                    } else {
+                        sessionSpeedView.setText("Speed unavailable");
+                    }
 
                     // Update or initialize the marker for the current user location
                     if (currentUserLocationMarker == null) {
