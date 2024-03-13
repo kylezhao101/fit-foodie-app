@@ -7,6 +7,7 @@ import androidx.core.app.ActivityCompat;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.Manifest;
 import android.hardware.Sensor;
@@ -32,6 +33,8 @@ import android.location.Location;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.TextView;
 
@@ -53,6 +56,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Location previousLocation; // to be used for distance and session paths
     private Marker currentUserLocationMarker;
 
+    private static final float MET = 8; // used for calorie calculation
+    private float weight = 70; // also used for calorie calculation, will be asked in future implementation.
+
     // Speed calculation
     private SensorManager sensorManager;
     private Sensor accelerometerSensor;
@@ -61,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private float lastX = 0, lastY = 0, lastZ = 0;
 
     // UI Elements
-    private TextView sessionSpeedView, sessionDistanceView;
+    private TextView sessionSpeedView, sessionDistanceView, sessionCalorieView;
     private Chronometer chronometer;
     private long pauseOffset;
     private boolean running; // flag for chronometer
@@ -103,10 +109,41 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         sessionSpeedView = findViewById(R.id.sessionSpeed);
         sessionDistanceView = findViewById(R.id.sessionDistance);
         chronometer = findViewById(R.id.chronometer);
+        sessionCalorieView = findViewById(R.id.sessionCalories);
+        Button trackerButton = findViewById(R.id.trackerButton);
+        Button gachaButton = findViewById(R.id.gachaButton);
+        Button profileButton = findViewById(R.id.profileButton);
+        trackerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Navigate to Tracker activity
+                Intent intent = new Intent(MainActivity.this, TrackingActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        gachaButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Navigate to Tracker activity
+                Intent intent = new Intent(MainActivity.this, GachaActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        profileButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Navigate to Tracker activity
+                Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
 
         // Start tracking session
         startTracking();
     }
+
 
     @Override
     protected void onResume() {
@@ -128,11 +165,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             sensorManager.unregisterListener(accelerometerListener);
         }
         if (running) {
-            chronometer.stop();
-            pauseOffset = SystemClock.elapsedRealtime() - chronometer.getBase();
+           chronometer.stop();
+           pauseOffset = SystemClock.elapsedRealtime() - chronometer.getBase();
             running = false;
         }
     }
+
 
     // Device speed tracking -----------------------------------------------------------------------
     private final SensorEventListener accelerometerListener = new SensorEventListener() {
@@ -143,6 +181,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 float xDifference = Math.abs(lastX - event.values[0]);
                 float yDifference = Math.abs(lastY - event.values[1]);
                 float zDifference = Math.abs(lastZ - event.values[2]);
+                double hour = ((SystemClock.elapsedRealtime() - chronometer.getBase()) / 3600000.0);
+
 
                 // filter minor movements if needed
                 float NOISE = (float) 0.0;
@@ -154,6 +194,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     runOnUiThread(() -> {
                         sessionSpeedView.setText(String.format(Locale.US, "%.2f km/h", currentSpeed));
                         sessionDistanceView.setText(String.format(Locale.US, "%.2f m", totalDistance));
+                        sessionCalorieView.setText(String.format(Locale.US, "%.2f cal", MET*weight*hour*1.05));
                     });
 
                 }

@@ -26,13 +26,10 @@
             </intent-filter>
         </activity>
         <activity android:name=".TrackingActivity"
-            android:configChanges="orientation"
             />
         <activity android:name=".GachaActivity"
-            android:configChanges="orientation"
             />
         <activity android:name=".ProfileActivity"
-            android:configChanges="orientation"
             />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
