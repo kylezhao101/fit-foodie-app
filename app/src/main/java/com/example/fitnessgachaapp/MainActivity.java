@@ -148,6 +148,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             running = false;
         }
     }
+    // Calorie handling ----------------------------------------------------------------------------
+    private void updateCaloriesBurned() {
+        long elapsedRealtimeMillis = SystemClock.elapsedRealtime() - chronometer.getBase();
+        float durationInHours = elapsedRealtimeMillis / 3600000.0f; // Convert milliseconds to hours
+        float caloriesBurned = MET * weight * durationInHours;
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                sessionCalorieView.setText(String.format(Locale.US, "%.2f kcal", caloriesBurned));
+            }
+        });
+    }
   
     // Location request and update methods ---------------------------------------------------------
     @Override
@@ -205,6 +218,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     // Update UI with total distance
                     runOnUiThread(() -> sessionDistanceView.setText(String.format(Locale.US, "%.2f m", totalDistance)));
+                    updateCaloriesBurned();
                 }
             }
         };
