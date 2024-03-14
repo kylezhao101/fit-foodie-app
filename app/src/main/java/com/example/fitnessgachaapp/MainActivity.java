@@ -55,10 +55,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private float totalDistance;
     private Location previousLocation; // to be used for distance and session paths
     private Marker currentUserLocationMarker;
+    private float speedKilometersPerHour = 0;
 
-    private static final float MET = 8; // used for calorie calculation
     private float weight = 70; // also used for calorie calculation, will be asked in future implementation.
-  
+
     // UI Elements
     private TextView sessionSpeedView, sessionDistanceView, sessionCalorieView;
     private Chronometer chronometer;
@@ -152,7 +152,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void updateCaloriesBurned() {
         long elapsedRealtimeMillis = SystemClock.elapsedRealtime() - chronometer.getBase();
         float durationInHours = elapsedRealtimeMillis / 3600000.0f; // Convert milliseconds to hours
-        float caloriesBurned = MET * weight * durationInHours;
+        float dynamicMET = getMETFromSpeed(speedKilometersPerHour);
+        float caloriesBurned = dynamicMET * weight * durationInHours;
 
         runOnUiThread(new Runnable() {
             @Override
@@ -161,7 +162,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
-  
+    private float getMETFromSpeed(float speedKph) {
+        if (speedKph < 0.8) { // Assuming barely moving or stationary
+            return 1.0f; // MET value for resting or very light activity
+        } else if (speedKph < 3.2) {
+            return 2.0f; // Slow walking
+        } else if (speedKph <= 6.4) {
+            return 3.0f; // Moderate walking
+        } else if (speedKph <= 8.0) {
+            return 4.3f; // Fast walking
+        } else if (speedKph <= 11.3) {
+            return 7.0f; // Jogging
+        } else {
+            return 9.0f; // Running
+        }
+    }
+
     // Location request and update methods ---------------------------------------------------------
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -192,7 +208,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (location.hasSpeed()) {
                         // Convert speed from meters per second to kilometers per hour
                         float speedMetersPerSecond = location.getSpeed();
-                        float speedKilometersPerHour = speedMetersPerSecond * 3.6f;
+                        speedKilometersPerHour = speedMetersPerSecond * 3.6f;
                         float thresholdKmH = 0.5f;
                         if (speedKilometersPerHour > thresholdKmH) {
                             sessionSpeedView.setText(String.format(Locale.US, "%.2f km/h", speedKilometersPerHour));
