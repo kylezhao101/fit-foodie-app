@@ -97,14 +97,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Button trackerButton = findViewById(R.id.trackerButton);
         Button gachaButton = findViewById(R.id.gachaButton);
         Button profileButton = findViewById(R.id.profileButton);
-        trackerButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Navigate to Tracker activity
-                Intent intent = new Intent(MainActivity.this, TrackingActivity.class);
-                startActivity(intent);
-            }
-        });
+
+
 
         gachaButton.setOnClickListener(new View.OnClickListener() {
             @Override
