@@ -195,37 +195,41 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
             @Override
             public void onLocationResult(@NonNull LocationResult locationResult) {
                 for (Location location : locationResult.getLocations()) {
-                    //If currentLocation is known, set the map market position and camera to it.
-                    LatLng userPosition = new LatLng(location.getLatitude(), location.getLongitude());
-                    pathPoints.add(userPosition);
+                    if (googleMap != null) {
+                        //If currentLocation is known, set the map market position and camera to it.
+                        LatLng userPosition = new LatLng(location.getLatitude(), location.getLongitude());
+                        pathPoints.add(userPosition);
 
-                    // Check if the location has speed information
-                    if (location.hasSpeed()) {
-                        // Convert speed from meters per second to kilometers per hour
-                        float speedMetersPerSecond = location.getSpeed();
-                        speedKilometersPerHour = speedMetersPerSecond * 3.6f;
-                        float thresholdKmH = 0.5f;
-                        if (speedKilometersPerHour > thresholdKmH) {
-                            sessionSpeedView.setText(String.format(Locale.US, "%.2f km/h", speedKilometersPerHour));
+                        // Check if the location has speed information
+                        if (location.hasSpeed()) {
+                            // Convert speed from meters per second to kilometers per hour
+                            float speedMetersPerSecond = location.getSpeed();
+                            speedKilometersPerHour = speedMetersPerSecond * 3.6f;
+                            float thresholdKmH = 0.5f;
+                            if (speedKilometersPerHour > thresholdKmH) {
+                                sessionSpeedView.setText(String.format(Locale.US, "%.2f km/h", speedKilometersPerHour));
+                            } else {
+                                sessionSpeedView.setText("0.00 km/h");
+                            }
                         } else {
-                            sessionSpeedView.setText("0.00 km/h");
+                            sessionSpeedView.setText("Speed unavailable");
                         }
-                    } else {
-                        sessionSpeedView.setText("Speed unavailable");
-                    }
 
-                    // Update or initialize the marker for the current user location
-                    if (currentUserLocationMarker == null) {
-                        currentUserLocationMarker = googleMap.addMarker(new MarkerOptions().position(userPosition).title("Your Location"));
-                    } else {
-                        currentUserLocationMarker.setPosition(userPosition);
-                    }
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userPosition, 17));
+                        // Update or initialize the marker for the current user location
+                        if (currentUserLocationMarker == null) {
+                            currentUserLocationMarker = googleMap.addMarker(new MarkerOptions().position(userPosition).title("Your Location"));
+                        } else {
+                            currentUserLocationMarker.setPosition(userPosition);
+                        }
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userPosition, 17));
 
-                    if (previousLocation != null) {
-                        totalDistance += previousLocation.distanceTo(location); // Calculate distance in meters
+                        if (previousLocation != null) {
+                            totalDistance += previousLocation.distanceTo(location); // Calculate distance in meters
+                        }
+                        previousLocation = location;
+                    } else {
+                        Log.d("LocationUpdate", "GoogleMap not ready for updates.");
                     }
-                    previousLocation = location;
 
                     // Update UI with total distance
                     runOnUiThread(() -> sessionDistanceView.setText(String.format(Locale.US, "%.2f m", totalDistance)));
