@@ -14,10 +14,11 @@ public class MainActivity extends AppCompatActivity {
 
         // Setup BottomNavigationView
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.navigation_home);
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
             Intent intent = null;
             if (item.getItemId() == R.id.navigation_home) {
-                intent = new Intent(MainActivity.this, MainActivity.class);
+                return false;
             } else if (item.getItemId() == R.id.navigation_tracker) {
                 intent = new Intent(MainActivity.this, TrackingActivity.class);
             } else if (item.getItemId() == R.id.navigation_profile) {
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
             }
             return false;
         });
+
 
     }
 }

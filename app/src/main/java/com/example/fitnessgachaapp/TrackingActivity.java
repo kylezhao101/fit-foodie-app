@@ -101,12 +101,13 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
 
         // Setup BottomNavigationView
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.navigation_tracker);
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
             Intent intent = null;
             if (item.getItemId() == R.id.navigation_home) {
                 intent = new Intent(TrackingActivity.this, MainActivity.class);
             } else if (item.getItemId() == R.id.navigation_tracker) {
-                intent = new Intent(TrackingActivity.this, TrackingActivity.class);
+                return false;
             } else if (item.getItemId() == R.id.navigation_profile) {
                 intent = new Intent(TrackingActivity.this, ProfileActivity.class);
             } else if (item.getItemId() == R.id.navigation_gacha) {
@@ -119,6 +120,7 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
             }
             return false;
         });
+
     }
 
 
