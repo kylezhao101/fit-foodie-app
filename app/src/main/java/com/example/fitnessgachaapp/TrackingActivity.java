@@ -6,14 +6,9 @@ import androidx.core.content.ContextCompat;
 import androidx.core.app.ActivityCompat;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.Manifest;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.os.Bundle;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -51,7 +46,7 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
 
     // UI
     private GoogleMap googleMap;
-    private ArrayList<Object> pathPoints; // to be used for distance and session paths
+    private ArrayList<LatLng> pathPoints; // to be used for distance and session paths
 
     private float totalDistance;
     private Location previousLocation; // to be used for distance and session paths
@@ -65,6 +60,8 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
     private Chronometer chronometer;
     private long pauseOffset;
     private boolean running; // flag for chronometer
+    Button startButton;
+    Button stopButton;
 
     // Activity lifecycle methods ------------------------------------------------------------------
     @Override
@@ -95,9 +92,22 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
         sessionDistanceView = findViewById(R.id.sessionDistance);
         chronometer = findViewById(R.id.chronometer);
         sessionCalorieView = findViewById(R.id.sessionCalories);
+        startButton = findViewById(R.id.startButton);
+        stopButton = findViewById(R.id.stopButton);
+        startButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startTracking();
+            }
+        });
 
-        // Start tracking session
-        startTracking();
+        stopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                stopTracking();
+            }
+        });
+        stopButton.setEnabled(false);
 
         // Setup BottomNavigationView
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -122,7 +132,6 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
         });
 
     }
-
 
     @Override
     protected void onResume() {
@@ -247,6 +256,8 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
             chronometer.start();
             running = true;
         }
+        stopButton.setEnabled(true);
+        startButton.setEnabled(false);
     }
     private void stopTracking() {
         if (running) {
@@ -254,6 +265,8 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
             pauseOffset = SystemClock.elapsedRealtime() - chronometer.getBase();
             running = false;
         }
+        stopButton.setEnabled(false);
+        startButton.setEnabled(true);
     }
     @SuppressLint("MissingPermission")
     private void startLocationUpdates() {
