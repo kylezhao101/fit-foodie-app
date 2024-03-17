@@ -33,6 +33,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -62,6 +63,7 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
     private boolean running; // flag for chronometer
     Button startButton;
     Button stopButton;
+    float caloriesBurned = 0;
 
     // Activity lifecycle methods ------------------------------------------------------------------
     @Override
@@ -130,17 +132,11 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
             }
             return false;
         });
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (!running) {
-            chronometer.setBase(SystemClock.elapsedRealtime() - pauseOffset);
-            chronometer.start();
-            running = true;
-        }
     }
 
     @Override
@@ -157,7 +153,7 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
         long elapsedRealtimeMillis = SystemClock.elapsedRealtime() - chronometer.getBase();
         float durationInHours = elapsedRealtimeMillis / 3600000.0f; // Convert milliseconds to hours
         float dynamicMET = getMETFromSpeed(speedKilometersPerHour);
-        float caloriesBurned = dynamicMET * weight * durationInHours;
+        caloriesBurned = dynamicMET * weight * durationInHours;
 
         runOnUiThread(new Runnable() {
             @Override
@@ -250,21 +246,30 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
     private void startTracking() {
         pathPoints.clear(); // Clear previous path points
         totalDistance = 0; // Reset total distance
-        startLocationUpdates(); // Start location updates
-        if (!running) {
-            chronometer.setBase(SystemClock.elapsedRealtime() - pauseOffset);
-            chronometer.start();
-            running = true;
-        }
+        previousLocation = null;
+        caloriesBurned = 0;
+
+        // Start the chronometer from 0
+        chronometer.setBase(SystemClock.elapsedRealtime());
+        chronometer.start();
+        running = true;
+
         stopButton.setEnabled(true);
         startButton.setEnabled(false);
+        Toast.makeText(this, "Started Tracking", Toast.LENGTH_LONG).show();
+        startLocationUpdates(); // Start location updates
     }
     private void stopTracking() {
-        if (running) {
-            chronometer.stop();
-            pauseOffset = SystemClock.elapsedRealtime() - chronometer.getBase();
-            running = false;
-        }
+        long sessionTime = SystemClock.elapsedRealtime() - chronometer.getBase();
+        running = false;
+        chronometer.stop();
+
+        stopLocationUpdates(); // Stop location updates
+
+        String summaryText = String.format(Locale.US, "Distance: %.2f m, Calories: %.2f kcal, Time: %s",
+                totalDistance, caloriesBurned, sessionTime);
+        Toast.makeText(this, summaryText, Toast.LENGTH_LONG).show();
+
         stopButton.setEnabled(false);
         startButton.setEnabled(true);
     }
