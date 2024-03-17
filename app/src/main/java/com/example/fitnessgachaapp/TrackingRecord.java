@@ -4,12 +4,14 @@ public class TrackingRecord {
     private String date; // Date of the activity
     private float distance; // Distance covered
     private float calories; // Calories burned
+    private final long duration; // Duration of the activity
 
     // Constructor
-    public TrackingRecord(String date, float distance, float calories) {
+    public TrackingRecord(String date, float distance, float calories, long duration) {
         this.date = date;
         this.distance = distance;
         this.calories = calories;
+        this.duration = duration;
     }
 
     // Getters and Setters
@@ -35,5 +37,9 @@ public class TrackingRecord {
 
     public void setCalories(float calories) {
         this.calories = calories;
+    }
+
+    public long getDuration() {
+        return duration;
     }
 }

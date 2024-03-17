@@ -35,11 +35,17 @@ import android.widget.Chronometer;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 
 public class TrackingActivity extends AppCompatActivity implements OnMapReadyCallback {
+
+    private DatabaseHelper databaseHelper;
+
     private static final int REQUEST_LOCATION_PERMISSION = 1; // Location permission request code
     private FusedLocationProviderClient fusedLocationClient;
     private LocationRequest locationRequest;
@@ -48,8 +54,6 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
     // UI
     private GoogleMap googleMap;
     private ArrayList<LatLng> pathPoints; // to be used for distance and session paths
-
-    private float totalDistance;
     private Location previousLocation; // to be used for distance and session paths
     private Marker currentUserLocationMarker;
     private float speedKilometersPerHour = 0;
@@ -63,12 +67,17 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
     private boolean running; // flag for chronometer
     Button startButton;
     Button stopButton;
+
+    //Tracking record
     float caloriesBurned = 0;
+    private long sessionDuration;
+    private float totalDistance;
 
     // Activity lifecycle methods ------------------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        databaseHelper = new DatabaseHelper(this); // Initialize DatabaseHelper
         setContentView(R.layout.tracking_page);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         pathPoints = new ArrayList<>(); // to be used for distance and session paths
@@ -147,6 +156,12 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
             pauseOffset = SystemClock.elapsedRealtime() - chronometer.getBase();
             running = false;
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        databaseHelper.close();
+        super.onDestroy();
     }
     // Calorie handling ----------------------------------------------------------------------------
     private void updateCaloriesBurned() {
@@ -260,15 +275,22 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
         startLocationUpdates(); // Start location updates
     }
     private void stopTracking() {
-        long sessionTime = SystemClock.elapsedRealtime() - chronometer.getBase();
+        long endTime = SystemClock.elapsedRealtime();
+        sessionDuration = endTime - chronometer.getBase();
+        Log.d("Tracking", "Session Duration in ms: " + sessionDuration);
         running = false;
         chronometer.stop();
-
+        long durationMinutes = TimeUnit.MILLISECONDS.toMinutes(sessionDuration);
         stopLocationUpdates(); // Stop location updates
 
-        String summaryText = String.format(Locale.US, "Distance: %.2f m, Calories: %.2f kcal, Time: %s",
-                totalDistance, caloriesBurned, sessionTime);
+        String summaryText = String.format(Locale.US, "Distance: %.2f m, Calories: %.2f kcal, Min: %s",
+                totalDistance, caloriesBurned, durationMinutes);
         Toast.makeText(this, summaryText, Toast.LENGTH_LONG).show();
+
+        // Adding to database
+        String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        TrackingRecord record = new TrackingRecord(currentDate, totalDistance, caloriesBurned, durationMinutes); // Create a new TrackingRecord
+        databaseHelper.addTrackingRecord(record);
 
         stopButton.setEnabled(false);
         startButton.setEnabled(true);
