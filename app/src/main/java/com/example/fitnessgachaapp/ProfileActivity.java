@@ -2,11 +2,16 @@ package com.example.fitnessgachaapp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -57,6 +62,42 @@ public class ProfileActivity extends AppCompatActivity {
             return false;
         });
 
+        EditText editTextWeight = findViewById(R.id.editTextWeight);
+        Button saveWeightButton = findViewById(R.id.saveWeightButton);
 
+        loadAndDisplayUserWeight();
+        saveWeightButton.setOnClickListener(view -> {
+            String weight = editTextWeight.getText().toString();
+            if (!weight.isEmpty()) {
+                saveWeightToSharedPreferences(weight);
+                Toast.makeText(ProfileActivity.this, "Saved: " + weight + " kg", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
+
+    private void saveWeightToSharedPreferences(String weightString) {
+        // Convert the weightString to a float. Use a default value if parsing fails.
+        float weight;
+        try {
+            weight = Float.parseFloat(weightString);
+        } catch (NumberFormatException e) {
+            weight = 70.0f; // Default weight or consider showing an error to the user
+            Log.e("saveWeight", "Error parsing weight string to float", e);
+        }
+
+        SharedPreferences sharedPreferences = getSharedPreferences("UserPreferences", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putFloat("userWeight", weight);
+        editor.apply();
+    }
+    private void loadAndDisplayUserWeight() {
+        SharedPreferences sharedPreferences = getSharedPreferences("UserPreferences", Context.MODE_PRIVATE);
+        // Retrieve the weight as a float. The second parameter is the default value if the key is not found.
+        float weight = sharedPreferences.getFloat("userWeight", 70.0f);
+        EditText editTextWeight = findViewById(R.id.editTextWeight);
+
+        // Set the weight as the EditText content
+        editTextWeight.setText(String.valueOf(weight));
+    }
+
 }
