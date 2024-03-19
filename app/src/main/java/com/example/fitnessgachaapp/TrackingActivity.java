@@ -6,7 +6,9 @@ import androidx.core.content.ContextCompat;
 import androidx.core.app.ActivityCompat;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.Manifest;
 import android.os.Bundle;
@@ -81,6 +83,8 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
         setContentView(R.layout.tracking_page);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         pathPoints = new ArrayList<>(); // to be used for distance and session paths
+
+        loadUserWeight(); // retireve user weight from preferences
 
         // initialize location services
         createLocationRequest();
@@ -191,6 +195,11 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
         } else {
             return 9.0f; // Running
         }
+    }
+    private void loadUserWeight() {
+        SharedPreferences sharedPreferences = getSharedPreferences("UserPreferences", Context.MODE_PRIVATE);
+        // Assuming default weight is 70 if not found in SharedPreferences
+        weight = sharedPreferences.getFloat("userWeight", 70.0f);
     }
 
     // Location request and update methods ---------------------------------------------------------
