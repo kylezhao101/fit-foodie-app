@@ -76,12 +76,11 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void saveWeightToSharedPreferences(String weightString) {
-        // Convert the weightString to a float. Use a default value if parsing fails.
         float weight;
         try {
             weight = Float.parseFloat(weightString);
         } catch (NumberFormatException e) {
-            weight = 70.0f; // Default weight or consider showing an error to the user
+            weight = 70.0f
             Log.e("saveWeight", "Error parsing weight string to float", e);
         }
 
