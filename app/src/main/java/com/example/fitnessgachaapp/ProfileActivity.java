@@ -5,15 +5,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,7 +16,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.List;
-import java.util.Locale;
 
 public class ProfileActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -80,7 +74,7 @@ public class ProfileActivity extends AppCompatActivity {
         try {
             weight = Float.parseFloat(weightString);
         } catch (NumberFormatException e) {
-            weight = 70.0f
+            weight = 70.0f;
             Log.e("saveWeight", "Error parsing weight string to float", e);
         }
 
