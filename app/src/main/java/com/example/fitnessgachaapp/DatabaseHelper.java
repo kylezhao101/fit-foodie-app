@@ -94,4 +94,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // Return the list of records
         return trackingRecords;
     }
+
+    public void clearTrackingHistory() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_TRACKING, null, null);
+        db.close();
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.example.fitnessgachaapp;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -58,6 +59,10 @@ public class ProfileActivity extends AppCompatActivity {
 
         EditText editTextWeight = findViewById(R.id.editTextWeight);
         Button saveWeightButton = findViewById(R.id.saveWeightButton);
+        Button clearHistoryButton = findViewById(R.id.clearButton);
+        clearHistoryButton.setOnClickListener(view -> {
+            clearTrackingHistory();
+        });
 
         loadAndDisplayUserWeight();
         saveWeightButton.setOnClickListener(view -> {
@@ -93,4 +98,13 @@ public class ProfileActivity extends AppCompatActivity {
         editTextWeight.setText(String.valueOf(weight));
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    private void clearTrackingHistory() {
+        databaseHelper.clearTrackingHistory();
+
+        trackingRecords.clear();
+        adapter.notifyDataSetChanged();
+
+        Toast.makeText(ProfileActivity.this, "Tracking history cleared", Toast.LENGTH_SHORT).show();
+    }
 }
