@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,7 +31,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         databaseHelper = new DatabaseHelper(this);
         recyclerView = findViewById(R.id.TrackingHistory);
-        trackingRecords = databaseHelper.getAllTrackingRecords();
+        trackingRecords = databaseHelper.getAllTrackingRecords("date");
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new TrackingRecordAdapter(this, trackingRecords);
@@ -72,6 +74,16 @@ public class ProfileActivity extends AppCompatActivity {
                 Toast.makeText(ProfileActivity.this, "Saved: " + weight + " kg", Toast.LENGTH_SHORT).show();
             }
         });
+
+        RadioGroup sortOptionsRadioGroup = findViewById(R.id.sortOptionsRadioGroup);
+        sortOptionsRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.recentRadio) {
+                reloadTrackingRecords("date");
+            } else if (checkedId == R.id.caloriesRadio) {
+                reloadTrackingRecords("calories");
+            }
+        });
+
     }
 
     private void saveWeightToSharedPreferences(String weightString) {
@@ -106,5 +118,11 @@ public class ProfileActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
 
         Toast.makeText(ProfileActivity.this, "Tracking history cleared", Toast.LENGTH_SHORT).show();
+    }
+
+    private void reloadTrackingRecords(String sortBy) {
+        trackingRecords.clear();
+        trackingRecords.addAll(databaseHelper.getAllTrackingRecords(sortBy));
+        adapter.notifyDataSetChanged();
     }
 }

@@ -65,11 +65,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close(); // Closing database connection
     }
 
-    public List<TrackingRecord> getAllTrackingRecords() {
+    public List<TrackingRecord> getAllTrackingRecords(String sortBy) {
         List<TrackingRecord> trackingRecords = new ArrayList<>();
 
         // Select All Query
-        String selectQuery = "SELECT  * FROM " + TABLE_TRACKING;
+        String selectQuery = "SELECT * FROM " + TABLE_TRACKING;
+        if ("calories".equals(sortBy)) {
+            selectQuery += " ORDER BY " + KEY_TRACKING_CALORIES + " DESC"; // Sort by calories in descending order
+        } else {
+            // Default sorting by date
+            selectQuery += " ORDER BY " + KEY_TRACKING_DATE + " DESC"; // Sort by date in descending order
+        }
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
