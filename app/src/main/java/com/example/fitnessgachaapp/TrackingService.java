@@ -57,6 +57,8 @@ public class TrackingService extends Service {
     public static final String ACTION_START_TRACKING = "com.example.fitnessgachaapp.action.START_TRACKING";
     public static final String ACTION_STOP_TRACKING = "com.example.fitnessgachaapp.action.STOP_TRACKING";
 
+    boolean tracking;
+
     public TrackingService() {
     }
 
@@ -64,6 +66,7 @@ public class TrackingService extends Service {
     public void onCreate() {
         super.onCreate();
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        createLocationRequest();
 
         loadUserWeight();
     }
@@ -151,16 +154,17 @@ public class TrackingService extends Service {
     }
 
     private void startTracking() {
-        createLocationRequest();
         startTimeMillis = SystemClock.elapsedRealtime();
         handler.post(updateNotificationRunnable);
         totalDistance = 0; // Reset total distance
         previousLocation = null;
         caloriesBurned = 0;
+        tracking = true;
 
     }
 
     private void stopTracking() {
+        tracking = false;
         handler.removeCallbacks(updateNotificationRunnable);
         stopForeground(true);
         endTimeMillis = System.currentTimeMillis();
@@ -179,17 +183,17 @@ public class TrackingService extends Service {
                 LatLng userPosition = null;
                 for (Location location : locationResult.getLocations()) {
                     userPosition = new LatLng(location.getLatitude(), location.getLongitude());
-                    if (location.hasSpeed()) {
+                    if (location.hasSpeed() && tracking) {
                         // Convert speed from meters per second to kilometers per hour
                         float speedMetersPerSecond = location.getSpeed();
                         speedKilometersPerHour = speedMetersPerSecond * 3.6f;
-                        if (speedKilometersPerHour < 0.5f) {
+                        if (speedKilometersPerHour < 0.5f && tracking) {
                             speedKilometersPerHour = 0;
                         }
                     } else {
                         speedKilometersPerHour = 0;
                     }
-                    if (previousLocation != null && speedKilometersPerHour > 0) {
+                    if (previousLocation != null && speedKilometersPerHour > 0 && tracking) {
                         totalDistance += previousLocation.distanceTo(location); // Calculate distance in meters
                     }
                     previousLocation = location;
@@ -209,10 +213,14 @@ public class TrackingService extends Service {
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
     };
     private void updateCaloriesBurned() {
-        long elapsedRealtimeMillis = SystemClock.elapsedRealtime() - startTimeMillis;
-        float durationInHours = elapsedRealtimeMillis / 3600000.0f;
-        float dynamicMET = getMETFromSpeed(speedKilometersPerHour);
-        caloriesBurned = dynamicMET * weight * durationInHours;
+        if (tracking) {
+            long elapsedRealtimeMillis = SystemClock.elapsedRealtime() - startTimeMillis;
+            float durationInHours = elapsedRealtimeMillis / 3600000.0f;
+            float dynamicMET = getMETFromSpeed(speedKilometersPerHour);
+            caloriesBurned = dynamicMET * weight * durationInHours;
+        } else {
+            caloriesBurned = 0;
+        }
     }
     private float getMETFromSpeed(float speedKph) {
         if (speedKph < 0.8) { // Assuming barely moving or stationary

@@ -14,6 +14,8 @@ import android.content.pm.PackageManager;
 import android.Manifest;
 import android.os.Bundle;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -63,6 +65,8 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
 
     private Intent serviceIntent;
 
+    private FusedLocationProviderClient fusedLocationClient;
+
     // Activity lifecycle methods ------------------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +77,8 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
 
         databaseHelper = new DatabaseHelper(this); // Initialize DatabaseHelper
         setContentView(R.layout.tracking_page);
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -218,11 +224,26 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
     // Location request and update methods ---------------------------------------------------------
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        Log.d("MapReady", "Map is ready and adding marker.");
         this.googleMap = googleMap;
-        LatLng markerPosition = new LatLng(10,10);
-        googleMap.addMarker(new MarkerOptions().position(markerPosition).title("Marker Location"));
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPosition,17));
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // Request missing location permissions
+            return;
+        }
+
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, location -> {
+                    // Got last known location. In some rare situations, this can be null.
+                    if (location != null) {
+                        // Logic to handle location object
+                        LatLng userLastLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLastLocation, 17));
+                    } else {
+                        // Handle the case where location is null, maybe set a default location
+                        LatLng defaultLocation = new LatLng(10,10); // Example default location
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation,17));
+                    }
+                });
     }
 
     private void startTracking() {
