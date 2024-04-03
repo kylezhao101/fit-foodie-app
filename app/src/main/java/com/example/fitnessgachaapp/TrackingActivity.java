@@ -72,9 +72,6 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Intent serviceIntent = new Intent(this, TrackingService.class);
-        ContextCompat.startForegroundService(this, serviceIntent);
-
         databaseHelper = new DatabaseHelper(this); // Initialize DatabaseHelper
         setContentView(R.layout.tracking_page);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -147,6 +144,13 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
         SharedPreferences sharedPreferences = getSharedPreferences("UserPreferences", MODE_PRIVATE);
         boolean isTracking = sharedPreferences.getBoolean("isTracking", false);
         updateUI(isTracking);
+        if (isTracking) {
+            // Service should only start if tracking is active
+            if (serviceIntent == null) {
+                serviceIntent = new Intent(this, TrackingService.class);
+            }
+            ContextCompat.startForegroundService(this, serviceIntent);
+        }
     }
 
     private void updateUI(boolean isTracking) {
@@ -185,6 +189,15 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
 
     @Override
     protected void onDestroy() {
+        SharedPreferences sharedPreferences = getSharedPreferences("UserPreferences", MODE_PRIVATE);
+        boolean isTracking = sharedPreferences.getBoolean("isTracking", false);
+        if (!isTracking) {
+            // Only stop the service if we are not tracking
+            if (serviceIntent != null) {
+                stopService(serviceIntent);
+                serviceIntent = null;
+            }
+        }
         databaseHelper.close();
         super.onDestroy();
     }
