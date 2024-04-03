@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.Manifest;
+import android.net.Uri;
 import android.os.Bundle;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -50,6 +51,7 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
     private GoogleMap googleMap;
     private Marker currentUserLocationMarker;
     private float speedKilometersPerHour = 0;
+    LatLng userLastLocation;
 
     // UI Elements
     private TextView sessionSpeedView, sessionDistanceView, sessionCalorieView;
@@ -57,6 +59,7 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
     private long pauseOffset;
     Button startButton;
     Button stopButton;
+    Button openInGoogleMapsButton;
 
     //Tracking record
     float caloriesBurned = 0;
@@ -94,6 +97,7 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
         sessionCalorieView = findViewById(R.id.sessionCalories);
         startButton = findViewById(R.id.startButton);
         stopButton = findViewById(R.id.stopButton);
+        openInGoogleMapsButton = findViewById(R.id.openGoogleMapsButton);
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -108,6 +112,13 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
             }
         });
         stopButton.setEnabled(false);
+
+        openInGoogleMapsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                openGoogleMapsToLocation();
+            }
+        });
 
         // Setup BottomNavigationView
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -152,7 +163,27 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
             ContextCompat.startForegroundService(this, serviceIntent);
         }
     }
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
 
+    @Override
+    protected void onDestroy() {
+        SharedPreferences sharedPreferences = getSharedPreferences("UserPreferences", MODE_PRIVATE);
+        boolean isTracking = sharedPreferences.getBoolean("isTracking", false);
+        if (!isTracking) {
+            // Only stop the service if we are not tracking
+            if (serviceIntent != null) {
+                stopService(serviceIntent);
+                serviceIntent = null;
+            }
+        }
+        databaseHelper.close();
+        super.onDestroy();
+    }
+
+    // Activity UI methods -------------------------------------------------------------------------
     private void updateUI(boolean isTracking) {
         SharedPreferences sharedPreferences = getSharedPreferences("UserPreferences", MODE_PRIVATE);
         if (isTracking) {
@@ -182,24 +213,30 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
         }
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
+    private void openGoogleMapsToLocation() {
+        // Check if the marker is not null and use its position
+        if (currentUserLocationMarker != null) {
+            LatLng position = currentUserLocationMarker.getPosition();
+            launchGoogleMaps(position.latitude, position.longitude);
+        }
+        // If currentUserLocationMarker is null, check if userLastLocation is not null
+        else if (userLastLocation != null) {
+            launchGoogleMaps(userLastLocation.latitude, userLastLocation.longitude);
+        } else {
+            // If both are null, show a toast message
+            Toast.makeText(this, "Current location not available", Toast.LENGTH_LONG).show();
+        }
     }
 
-    @Override
-    protected void onDestroy() {
-        SharedPreferences sharedPreferences = getSharedPreferences("UserPreferences", MODE_PRIVATE);
-        boolean isTracking = sharedPreferences.getBoolean("isTracking", false);
-        if (!isTracking) {
-            // Only stop the service if we are not tracking
-            if (serviceIntent != null) {
-                stopService(serviceIntent);
-                serviceIntent = null;
-            }
+    private void launchGoogleMaps(double latitude, double longitude) {
+        Uri gmmIntentUri = Uri.parse("geo:" + latitude + "," + longitude + "?q=" + latitude + "," + longitude + "(Your Location)");
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+        mapIntent.setPackage("com.google.android.apps.maps");
+        if (mapIntent.resolveActivity(getPackageManager()) != null) {
+            startActivity(mapIntent);
+        } else {
+            Toast.makeText(this, "Google Maps is not installed", Toast.LENGTH_LONG).show();
         }
-        databaseHelper.close();
-        super.onDestroy();
     }
 
     private BroadcastReceiver trackingUpdateReceiver = new BroadcastReceiver() {
@@ -249,7 +286,7 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
                     // Got last known location. In some rare situations, this can be null.
                     if (location != null) {
                         // Logic to handle location object
-                        LatLng userLastLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                        userLastLocation = new LatLng(location.getLatitude(), location.getLongitude());
                         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLastLocation, 17));
                     } else {
                         // Handle the case where location is null, maybe set a default location
