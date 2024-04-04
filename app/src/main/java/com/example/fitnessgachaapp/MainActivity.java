@@ -1,7 +1,12 @@
 package com.example.fitnessgachaapp;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.os.Bundle;
+import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -34,6 +39,19 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
+        ImageView imageView = findViewById(R.id.pixel_art_view);
+        Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.beer);
+        Bitmap scaledBitmap = scalePixelArt(originalBitmap, 5); // `scale` is your desired scaling factor
+        imageView.setImageBitmap(scaledBitmap);
+    }
 
+    public static Bitmap scalePixelArt(Bitmap bitmap, int scale) {
+        Bitmap scaledBitmap = Bitmap.createBitmap(bitmap.getWidth() * scale, bitmap.getHeight() * scale, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(scaledBitmap);
+        Paint paint = new Paint();
+        paint.setFilterBitmap(false); // Disables bilinear filtering
+        canvas.scale(scale, scale);
+        canvas.drawBitmap(bitmap, 0, 0, paint);
+        return scaledBitmap;
     }
 }
