@@ -13,10 +13,11 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "fitnessTrackerDatabase";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     // Table Names
     public static final String TABLE_TRACKING = "tracking";
+    public static final String TABLE_USER = "user";
 
     // Tracking Table Columns
     public static final String KEY_TRACKING_ID = "_id";
@@ -24,6 +25,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String KEY_TRACKING_DISTANCE = "distance";
     public static final String KEY_TRACKING_CALORIES = "calories";
     public static final String KEY_TRACKING_DURATION = "duration";
+
+    // User Table Columns
+    public static final String KEY_USER_ID = "_id";
+    public static final String KEY_USER_TOTAL_CALORIES = "total_calories";
 
     // SQL to create table
     private static final String CREATE_TABLE_TRACKING = "CREATE TABLE " +
@@ -35,6 +40,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             KEY_TRACKING_DURATION + " LONG" +
             ");";
 
+    // SQL to create User table
+    private static final String CREATE_TABLE_USER = "CREATE TABLE " +
+            TABLE_USER + "(" +
+            KEY_USER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+            KEY_USER_TOTAL_CALORIES + " REAL" +
+            ");";
+
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -43,11 +55,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         // Creating required tables
         db.execSQL(CREATE_TABLE_TRACKING);
+        db.execSQL(CREATE_TABLE_USER);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRACKING);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USER);
         onCreate(db);
     }
 
@@ -105,6 +119,57 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_TRACKING, null, null);
         db.close();
+    }
+
+    // Method to the user's total calories
+    public void updateUserTotalCalories(float caloriesChange) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Initialize variables
+        float totalCalories = 0;
+        boolean userExists = false;
+
+        // Check if a user record already exists
+        Cursor cursor = db.query(TABLE_USER, new String[]{KEY_USER_TOTAL_CALORIES}, null, null, null, null, null);
+        if (cursor.moveToFirst()) {
+            int caloriesIndex = cursor.getColumnIndex(KEY_USER_TOTAL_CALORIES);
+            if (caloriesIndex >= 0) { // Ensure the column index is valid
+                totalCalories = cursor.getFloat(caloriesIndex);
+                userExists = true;
+            }
+        }
+        cursor.close();
+
+        totalCalories += caloriesChange;
+        totalCalories = Math.max(0, totalCalories);
+        int roundedTotalCalories = Math.round(totalCalories);
+
+        ContentValues values = new ContentValues();
+        values.put(KEY_USER_TOTAL_CALORIES, roundedTotalCalories);
+
+        if (userExists) {
+            // Update existing user's calories
+            db.update(TABLE_USER, values, null, null);
+        } else {
+            // Insert new user with calories if no user was found
+            db.insert(TABLE_USER, null, values);
+        }
+        db.close(); // Closing database connection
+    }
+
+    // Method to retrieve the total calories of the user
+    public float getUserTotalCalories() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        float totalCalories = 0;
+
+        Cursor cursor = db.query(TABLE_USER, new String[]{KEY_USER_TOTAL_CALORIES}, null, null, null, null, null);
+        if (cursor.moveToFirst()) {
+            totalCalories = cursor.getFloat(0);
+        }
+
+        cursor.close();
+        db.close();
+        return totalCalories;
     }
 
 }

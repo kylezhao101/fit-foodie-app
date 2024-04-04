@@ -341,6 +341,10 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
         TrackingRecord record = new TrackingRecord(currentDate, totalDistance, caloriesBurned, durationMinutes); // Create a new TrackingRecord
         databaseHelper.addTrackingRecord(record);
 
+        databaseHelper.updateUserTotalCalories(caloriesBurned);
+        float userTotalCalories = databaseHelper.getUserTotalCalories();
+        Log.d("Tracking", "User Total Calories: " + userTotalCalories);
+
         stopButton.setEnabled(false);
         startButton.setEnabled(true);
 
