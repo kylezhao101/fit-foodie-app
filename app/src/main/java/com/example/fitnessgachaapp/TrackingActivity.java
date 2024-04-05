@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.app.ActivityCompat;
 
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -143,11 +144,12 @@ public class TrackingActivity extends AppCompatActivity implements OnMapReadyCal
         });
     }
 
+    @SuppressLint("NewApi")
     @Override
     protected void onStart() {
         super.onStart();
         IntentFilter filter = new IntentFilter("TrackingUpdate");
-        registerReceiver(trackingUpdateReceiver, filter);
+        registerReceiver(trackingUpdateReceiver, filter, null, null, Context.RECEIVER_EXPORTED);
     }
     @Override
     protected void onResume() {
