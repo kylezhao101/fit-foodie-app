@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
@@ -62,9 +61,7 @@ public class ProfileActivity extends AppCompatActivity {
         EditText editTextWeight = findViewById(R.id.editTextWeight);
         Button saveWeightButton = findViewById(R.id.saveWeightButton);
         Button clearHistoryButton = findViewById(R.id.clearButton);
-        clearHistoryButton.setOnClickListener(view -> {
-            clearTrackingHistory();
-        });
+        clearHistoryButton.setOnClickListener(view -> clearTrackingHistory());
 
         loadAndDisplayUserWeight();
         saveWeightButton.setOnClickListener(view -> {
