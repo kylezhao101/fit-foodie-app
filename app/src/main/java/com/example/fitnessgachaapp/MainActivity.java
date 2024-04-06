@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
         ImageView imageView = findViewById(R.id.pixel_art_view);
         Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.beer);
-        Bitmap scaledBitmap = scalePixelArt(originalBitmap, 5); // `scale` is your desired scaling factor
+        Bitmap scaledBitmap = scalePixelArt(originalBitmap, 5);
         imageView.setImageBitmap(scaledBitmap);
     }
 

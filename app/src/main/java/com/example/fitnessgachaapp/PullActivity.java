@@ -1,6 +1,7 @@
 package com.example.fitnessgachaapp;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.hardware.Sensor;
@@ -11,9 +12,6 @@ import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 public class PullActivity extends AppCompatActivity implements SensorEventListener {
@@ -92,30 +90,11 @@ public class PullActivity extends AppCompatActivity implements SensorEventListen
         //random food item in pulled
         ImageView randomImageView = findViewById(R.id.FoodImageView);
         int randomDrawableId = getRandomDrawableId();
-        randomImageView.setImageResource(randomDrawableId);
+        Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), randomDrawableId);
+        Bitmap scaledBitmap = scalePixelArt(originalBitmap, 5);
+        randomImageView.setImageBitmap(scaledBitmap);
     }
 
-//    private int[] getAllDrawableResourceIds() {
-//        List<Integer> drawableIdsList = new ArrayList<>();
-//        Field[] drawablesFields = R.drawable.class.getFields();
-//        for (Field field : drawablesFields) {
-//            try {
-//                // Filter out the drawable IDs that are not needed (e.g., those with specific prefixes)
-//                if (field.getName().startsWith("food_")) { // Adjust the prefix as needed
-//                    int resourceId = field.getInt(null);
-//                    drawableIdsList.add(resourceId);
-//                }
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        // Convert the list to an array
-//        int[] drawableIdsArray = new int[drawableIdsList.size()];
-//        for (int i = 0; i < drawableIdsList.size(); i++) {
-//            drawableIdsArray[i] = drawableIdsList.get(i);
-//        }
-//        return drawableIdsArray;
-//    }
     private int getRandomDrawableId() {
         Random random = new Random();
         int index = random.nextInt(drawableIds.length);
