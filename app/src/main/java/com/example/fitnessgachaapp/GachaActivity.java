@@ -1,6 +1,10 @@
 package com.example.fitnessgachaapp;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -8,6 +12,7 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -100,14 +105,16 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
 
                 long currentTime = System.currentTimeMillis();
                 long elapsedTime = currentTime - startTime;
-                if (elapsedTime >= 3000) { // 3 seconds
-                    // Enough shaking, stop the progress bar or perform other actions
-                    summonBar.setProgress(100);
-                } else {
                     // Update progress bar based on shaking duration
-                    int progress = (int) (100 * elapsedTime / 3000);
-                    summonBar.setProgress(progress);
-                }
+                    if (summonBar.getProgress() == 100) {
+                        summonBar.setProgress(100);
+                        Intent intent = new Intent(GachaActivity.this, PullActivity.class);
+                        startActivity(intent);
+                    }
+                    else{
+                        int progress = (int) (100 * elapsedTime / 600);
+                        summonBar.setProgress(progress);
+                    }
             } else {
                 // if phone is still
                 startTime = System.currentTimeMillis();
@@ -130,5 +137,15 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
     protected void onPause() {
         super.onPause();
         sensorManager.unregisterListener(this);
+    }
+
+    public static Bitmap scalePixelArt(Bitmap bitmap, int scale) {
+        Bitmap scaledBitmap = Bitmap.createBitmap(bitmap.getWidth() * scale, bitmap.getHeight() * scale, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(scaledBitmap);
+        Paint paint = new Paint();
+        paint.setFilterBitmap(false); // Disables bilinear filtering
+        canvas.scale(scale, scale);
+        canvas.drawBitmap(bitmap, 0, 0, paint);
+        return scaledBitmap;
     }
 }

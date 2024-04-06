@@ -18,6 +18,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Table Names
     public static final String TABLE_TRACKING = "tracking";
     public static final String TABLE_USER = "user";
+    public static final String TABLE_GACHA = "gacha";
 
     // Tracking Table Columns
     public static final String KEY_TRACKING_ID = "_id";
@@ -29,6 +30,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // User Table Columns
     public static final String KEY_USER_ID = "_id";
     public static final String KEY_USER_TOTAL_CALORIES = "total_calories";
+
+    // Gacha Table Columns
+    public static final String KEY_GACHA_ID = "_id";
+    public static final String KEY_GACHA_NAME = "name";
+    public static final String KEY_GACHA_SPRITE = "sprite";
 
     // SQL to create table
     private static final String CREATE_TABLE_TRACKING = "CREATE TABLE " +
@@ -45,6 +51,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             TABLE_USER + "(" +
             KEY_USER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
             KEY_USER_TOTAL_CALORIES + " REAL" +
+            ");";
+    // SQL to create Gacha table
+    private static final String CREATE_TABLE_GACHA = "CREATE TABLE " +
+            TABLE_GACHA + "(" +
+            KEY_GACHA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+            KEY_GACHA_NAME + " TEXT," +
+            KEY_GACHA_SPRITE + " TEXT" +
             ");";
 
     public DatabaseHelper(Context context) {

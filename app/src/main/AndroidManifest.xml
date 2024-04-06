@@ -36,6 +36,7 @@
         <activity android:name=".TrackingActivity" />
         <activity android:name=".GachaActivity" />
         <activity android:name=".ProfileActivity" />
+        <activity android:name=".PullActivity" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
