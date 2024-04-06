@@ -1,9 +1,22 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.FitnessGachaApp" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.FitnessGachaApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/off_black</item>
+        <item name="colorPrimaryDark">@color/off_black</item>
+        <item name="colorAccent">@color/off_black</item>
+        <item name="android:windowBackground">@color/app_background_color</item>
+        <item name="materialButtonStyle">@style/CustomRoundedButton</item>
     </style>
 
     <style name="Theme.FitnessGachaApp" parent="Base.Theme.FitnessGachaApp" />
+    <style name="CustomRoundedButton" parent="Widget.MaterialComponents.Button">
+        <item name="shapeAppearance">@style/CustomShapeAppearance</item>
+    </style>
+
+    <style name="CustomShapeAppearance" parent="ShapeAppearance.MaterialComponents.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">20dp</item>
+    </style>
 </resources>

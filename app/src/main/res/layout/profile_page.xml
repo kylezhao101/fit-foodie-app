@@ -9,14 +9,18 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="vertical"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation">
+        android:paddingLeft="20dp"
+        android:paddingTop="40dp"
+        android:paddingRight="20dp"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
             android:id="@+id/editWeightLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Your Weight (kg)" />
+            android:text="Your Weight (kg)"
+            android:textSize="24sp" />
 
         <EditText
             android:id="@+id/editTextWeight"
@@ -36,14 +40,26 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/clearButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Clear History" />
-
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/textView4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:paddingTop="20dp"
+            android:text="Past Records"
+            android:textSize="24sp" />
+
+        <Button
+            android:id="@+id/clearButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:minWidth="120dp"
+            android:minHeight="40dp"
+            android:text="Clear History"
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/textView3"
@@ -60,7 +76,8 @@
                 android:id="@+id/sortOptionsRadioGroup"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="1">
+                android:layout_weight="1"
+                android:orientation="horizontal">
 
                 <RadioButton
                     android:id="@+id/recentRadio"
@@ -76,6 +93,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Most Calories" />
+
             </RadioGroup>
 
         </LinearLayout>
@@ -89,14 +107,15 @@
     </LinearLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
-        android:layout_height="75dp"
+        android:layout_height="60dp"
         android:layout_weight="1"
+        android:background="@color/app_background_color"
+        app:labelVisibilityMode="labeled"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav_menu"
-        android:id="@+id/bottom_navigation"
-        app:labelVisibilityMode="labeled"/>
+        app:menu="@menu/bottom_nav_menu" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

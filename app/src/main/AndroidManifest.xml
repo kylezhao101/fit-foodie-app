@@ -21,8 +21,8 @@
         <service
             android:name=".TrackingService"
             android:enabled="true"
-            android:exported="true"
-            android:foregroundServiceType="location"></service>
+            android:exported="false"
+            android:foregroundServiceType="location" />
 
         <activity
             android:name=".MainActivity"
