@@ -1,5 +1,6 @@
 package com.example.fitnessgachaapp;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -8,7 +9,11 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -82,17 +87,30 @@ public class PullActivity extends AppCompatActivity implements SensorEventListen
             R.drawable.wine
     };
 
+    private Button returnButton;
+    private TextView foodText;
+    private ImageView randomImageView;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.pull_page);
 
+        //layout setup
+        returnButton = findViewById(R.id.returnButton);
+        foodText = findViewById(R.id.foodName);
+        randomImageView = findViewById(R.id.FoodImageView);
+
         //random food item in pulled
-        ImageView randomImageView = findViewById(R.id.FoodImageView);
         int randomDrawableId = getRandomDrawableId();
         Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), randomDrawableId);
         Bitmap scaledBitmap = scalePixelArt(originalBitmap, 5);
         randomImageView.setImageBitmap(scaledBitmap);
+        foodText.setText(randomDrawableId);
+
+        returnButton.setOnClickListener(view -> {
+            Intent intent = new Intent(PullActivity.this, GachaActivity.class);
+            startActivity(intent);
+        });
     }
 
     private int getRandomDrawableId() {
