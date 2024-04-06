@@ -52,6 +52,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             KEY_USER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
             KEY_USER_TOTAL_CALORIES + " REAL" +
             ");";
+
     // SQL to create Gacha table
     private static final String CREATE_TABLE_GACHA = "CREATE TABLE " +
             TABLE_GACHA + "(" +
@@ -69,6 +70,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // Creating required tables
         db.execSQL(CREATE_TABLE_TRACKING);
         db.execSQL(CREATE_TABLE_USER);
+        db.execSQL(CREATE_TABLE_GACHA);
     }
 
     @Override
@@ -183,6 +185,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return totalCalories;
+    }
+
+    public void addGachaPull(String name, String sprite) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(KEY_GACHA_NAME, name);
+        values.put(KEY_GACHA_SPRITE, sprite);
+
+        db.insert(TABLE_GACHA, null, values);
+        db.close();
     }
 
 }

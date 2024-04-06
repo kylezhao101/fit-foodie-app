@@ -7,15 +7,25 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.util.Locale;
+
 public class MainActivity extends AppCompatActivity {
+
+    private DatabaseHelper databaseHelper;
+    private TextView caloriesTextView;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Initialize DatabaseHelper
+        databaseHelper = new DatabaseHelper(this);
 
         // Setup BottomNavigationView
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -43,6 +53,24 @@ public class MainActivity extends AppCompatActivity {
         Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.beer);
         Bitmap scaledBitmap = scalePixelArt(originalBitmap, 5);
         imageView.setImageBitmap(scaledBitmap);
+
+        caloriesTextView = findViewById(R.id.userCaloriesAvailableTextView);
+        updateUserCaloriesDisplay();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateUserCaloriesDisplay();
+    }
+
+    private void updateUserCaloriesDisplay() {
+        // Query the total calories from the database
+        float totalCalories = databaseHelper.getUserTotalCalories();
+
+        // Update the TextView to display the total calories
+        String caloriesText = String.format(Locale.getDefault(), "Current Calories Available for spending: %.0f", totalCalories);
+        caloriesTextView.setText(caloriesText);
     }
 
     public static Bitmap scalePixelArt(Bitmap bitmap, int scale) {
