@@ -9,6 +9,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -26,12 +27,15 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
     private Sensor accelerometer;
     private ProgressBar summonBar;
     private Button summonButton;
+    private Button calorieButton;
     private TextView textMove;
     private TextView caloriesText;
     private boolean sensorOn = false;
     private long startTime = 0;
     private DatabaseHelper databaseHelper;
     private static final float CALORIE_COST_PER_PULL = -1;
+    private MediaPlayer done;
+    private MediaPlayer cooking;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,9 +48,12 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
 
         //layout setup
         summonButton = findViewById(R.id.summonButton);
+        calorieButton = findViewById(R.id.calorieButton);
         textMove =  findViewById(R.id.textMove);
         caloriesText =  findViewById(R.id.calorieTextView);
         summonBar = findViewById(R.id.summonBar);
+        done = MediaPlayer.create(this, R.raw.cook);
+        cooking = MediaPlayer.create(this, R.raw.cooking);
 
 
         // Setup BottomNavigationView
@@ -73,7 +80,7 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
         //display the available calories for pulling from the database
         float totalCalories = databaseHelper.getUserTotalCalories();
         String caloriesString = String.valueOf((int) totalCalories);
-        caloriesText.setText("Calories per pull: 10   Availble Calories: "+caloriesString);
+        updateCaloriesText();
 
         //button to turn on the sensor
         summonButton.setOnClickListener(new View.OnClickListener() {
@@ -88,7 +95,20 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
                 }
             }
         });
+        calorieButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                databaseHelper.updateUserTotalCalories(+1);
+                updateCaloriesText();
+            }
+        });
 
+    }
+
+    private void updateCaloriesText() {
+        float totalCalories = databaseHelper.getUserTotalCalories();
+        String caloriesString = String.valueOf((int) totalCalories);
+        caloriesText.setText("Calories per pull: 10   Available Calories: " + caloriesString);
     }
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -110,12 +130,14 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
                     if (summonBar.getProgress() == 100 && databaseHelper.getUserTotalCalories() >0) {
                         summonBar.setProgress(100);
                         databaseHelper.updateUserTotalCalories(CALORIE_COST_PER_PULL);
+                        done.start();
                         Intent intent = new Intent(GachaActivity.this, PullActivity.class);
                         startActivity(intent);
                     }
                     else{
                         int progress = (int) (100 * elapsedTime / 600);
                         summonBar.setProgress(progress);
+                        cooking.start();
                     }
             } else {
                 // if phone is still

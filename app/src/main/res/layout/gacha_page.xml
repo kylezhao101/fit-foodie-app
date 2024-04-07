@@ -84,4 +84,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/summonBar" />
 
+    <Button
+        android:id="@+id/calorieButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="159dp"
+        android:layout_marginTop="35dp"
+        android:layout_marginEnd="158dp"
+        android:layout_marginBottom="21dp"
+        android:text="+1 calorie"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textMove" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
