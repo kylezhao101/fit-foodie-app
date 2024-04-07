@@ -198,4 +198,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    public void deductCalories(float calories) {
+        SQLiteDatabase db = null;
+
+        db = this.getWritableDatabase();
+
+        float currentTotalCalories = getUserTotalCalories();
+
+        float newTotalCalories = currentTotalCalories - calories;
+        newTotalCalories = Math.max(0, newTotalCalories);
+
+            // Update the user's total calories in the database
+        ContentValues values = new ContentValues();
+        values.put(KEY_USER_TOTAL_CALORIES, newTotalCalories);
+
+        db.update(TABLE_USER, values, null, null);
+
+
+    }
 }

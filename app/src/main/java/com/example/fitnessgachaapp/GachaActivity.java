@@ -27,8 +27,11 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
     private ProgressBar summonBar;
     private Button summonButton;
     private TextView textMove;
+    private TextView caloriesText;
     private boolean sensorOn = false;
     private long startTime = 0;
+    private DatabaseHelper databaseHelper;
+    private static final float CALORIE_COST_PER_PULL = -1;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,10 +40,12 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
         //Setup Sensor Manager
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        databaseHelper = new DatabaseHelper(this);
 
         //layout setup
         summonButton = findViewById(R.id.summonButton);
-        textMove = (TextView) findViewById(R.id.textMove);
+        textMove =  findViewById(R.id.textMove);
+        caloriesText =  findViewById(R.id.calorieTextView);
         summonBar = findViewById(R.id.summonBar);
 
 
@@ -65,16 +70,16 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
             return false;
         });
 
-
-
-
-
+        //display the available calories for pulling from the database
+        float totalCalories = databaseHelper.getUserTotalCalories();
+        String caloriesString = String.valueOf((int) totalCalories);
+        caloriesText.setText("Calories per pull: 10   Availble Calories: "+caloriesString);
 
         //button to turn on the sensor
         summonButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sensorOn = !sensorOn; // Toggle the state
+                sensorOn = !sensorOn; // Toggle the state of the summon button to activate shaking input
                 if (sensorOn) {
                     sensorManager.registerListener(GachaActivity.this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
                 } else {
@@ -89,7 +94,6 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
     public void onSensorChanged(SensorEvent event) {
         if(sensorOn){
             sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-
             // similar code from lab4 sensor test
             float x = event.values[0];
             float y = event.values[1];
@@ -99,15 +103,13 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
             // Calculate the magnitude of acceleration
             double acceleration = Math.sqrt(x * x + y * y + z * z);
             if (acceleration > 9.9) {
-                // if phone is moving
-                textMove.setText("Moving");
-                //textMove.setText(String.valueOf(magnitude));
 
                 long currentTime = System.currentTimeMillis();
                 long elapsedTime = currentTime - startTime;
                     // Update progress bar based on shaking duration
-                    if (summonBar.getProgress() == 100) {
+                    if (summonBar.getProgress() == 100 && databaseHelper.getUserTotalCalories() >0) {
                         summonBar.setProgress(100);
+                        databaseHelper.updateUserTotalCalories(CALORIE_COST_PER_PULL);
                         Intent intent = new Intent(GachaActivity.this, PullActivity.class);
                         startActivity(intent);
                     }
@@ -118,10 +120,10 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
             } else {
                 // if phone is still
                 startTime = System.currentTimeMillis();
-                textMove.setText("Stationary");
             }
         }
     }
+
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         sensorManager.unregisterListener(this);
