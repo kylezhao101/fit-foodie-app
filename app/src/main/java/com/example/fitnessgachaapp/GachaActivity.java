@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -86,15 +87,25 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
         summonButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sensorOn = !sensorOn; // Toggle the state of the summon button to activate shaking input
-                if (sensorOn) {
-                    sensorManager.registerListener(GachaActivity.this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+                // Check if the user has enough calories to summon
+                if (databaseHelper.getUserTotalCalories() >= Math.abs(CALORIE_COST_PER_PULL)) {
+                    sensorOn = !sensorOn; // Toggle the sensor state only if enough calories
+                    if (sensorOn) {
+                        // Register the sensor listener to start detecting shakes
+                        sensorManager.registerListener(GachaActivity.this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+                        textMove.setText("Shake to summon!");
+                    } else {
+                        // Unregister the sensor listener to stop detecting shakes
+                        sensorManager.unregisterListener(GachaActivity.this);
+                        textMove.setText("N/A");
+                    }
                 } else {
-                    sensorManager.unregisterListener(GachaActivity.this);
-                    textMove.setText("N/A");
+                    // If not enough calories, show a toast and do not toggle sensor state
+                    notifyUser("Not enough calories to summon. Burn more calories!");
                 }
             }
         });
+
         calorieButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -161,6 +172,10 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
     protected void onPause() {
         super.onPause();
         sensorManager.unregisterListener(this);
+    }
+
+    private void notifyUser(String message) {
+        runOnUiThread(() -> Toast.makeText(GachaActivity.this, message, Toast.LENGTH_SHORT).show());
     }
 
     public static Bitmap scalePixelArt(Bitmap bitmap, int scale) {
