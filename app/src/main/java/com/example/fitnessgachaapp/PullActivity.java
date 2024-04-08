@@ -46,8 +46,8 @@ public class PullActivity extends AppCompatActivity implements SensorEventListen
             // Load drawable items JSON
             JSONArray itemsArray = new JSONArray(loadJSONFromAssets());
             // Select a random item
-//            JSONObject selectedItem = itemsArray.getJSONObject(new Random().nextInt(itemsArray.length()));
-            JSONObject selectedItem = itemsArray.getJSONObject(1);
+            JSONObject selectedItem = itemsArray.getJSONObject(new Random().nextInt(itemsArray.length()));
+            //JSONObject selectedItem = itemsArray.getJSONObject(1);
 
             // Get the drawable resource identifier
             String itemName = selectedItem.getString("name");

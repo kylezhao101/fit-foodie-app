@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.content.ContentValues;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -205,6 +206,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             values.put(KEY_GACHA_DUPE, dupeCount);
 
             db.update(TABLE_GACHA, values, KEY_GACHA_ID + " = ?", new String[]{String.valueOf(gachaId)});
+            Log.d("GachaSystem", "Updated item: " + name + " | New dupe count: " + dupeCount);
         } else {
             // If the item doesn't exist, insert a new row
             ContentValues values = new ContentValues();
@@ -217,5 +219,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             cursor.close();
         }
         db.close();
+    }
+
+    public List<GachaItem> getAllGachaItems() {
+        List<GachaItem> gachaItems = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_GACHA, new String[]{KEY_GACHA_ID, KEY_GACHA_NAME, KEY_GACHA_SPRITE_ID, KEY_GACHA_DUPE}, null, null, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                int idIndex = cursor.getColumnIndex(KEY_GACHA_ID);
+                int nameIndex = cursor.getColumnIndex(KEY_GACHA_NAME);
+                int spriteIdIndex = cursor.getColumnIndex(KEY_GACHA_SPRITE_ID);
+                int dupeCountIndex = cursor.getColumnIndex(KEY_GACHA_DUPE);
+
+                if (idIndex != -1 && nameIndex != -1 && spriteIdIndex != -1 && dupeCountIndex != -1) {
+                    int id = cursor.getInt(idIndex);
+                    String name = cursor.getString(nameIndex);
+                    int spriteId = cursor.getInt(spriteIdIndex);
+                    int dupeCount = cursor.getInt(dupeCountIndex);
+
+                    GachaItem item = new GachaItem(id, name, spriteId, dupeCount);
+                    gachaItems.add(item);
+                }
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return gachaItems;
     }
 }

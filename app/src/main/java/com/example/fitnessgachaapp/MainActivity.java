@@ -1,24 +1,19 @@
 package com.example.fitnessgachaapp;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.os.Bundle;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-import java.util.Locale;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private DatabaseHelper databaseHelper;
-    private TextView caloriesTextView;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,6 +21,13 @@ public class MainActivity extends AppCompatActivity {
 
         // Initialize DatabaseHelper
         databaseHelper = new DatabaseHelper(this);
+        List<GachaItem> gachaCollection = databaseHelper.getAllGachaItems();
+
+        // Setup the RecyclerView with a GridLayoutManager
+        RecyclerView recyclerView = findViewById(R.id.gacha_collection_recycler_view);
+        int numberOfColumns = 3;
+        recyclerView.setLayoutManager(new GridLayoutManager(this, numberOfColumns));
+        recyclerView.setAdapter(new GachaAdapter(gachaCollection, this));
 
         // Setup BottomNavigationView
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -48,38 +50,10 @@ public class MainActivity extends AppCompatActivity {
             }
             return false;
         });
-
-        ImageView imageView = findViewById(R.id.pixel_art_view);
-        Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.beer);
-        Bitmap scaledBitmap = scalePixelArt(originalBitmap, 5);
-        imageView.setImageBitmap(scaledBitmap);
-
-        caloriesTextView = findViewById(R.id.userCaloriesAvailableTextView);
-        updateUserCaloriesDisplay();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        updateUserCaloriesDisplay();
-    }
-
-    private void updateUserCaloriesDisplay() {
-        // Query the total calories from the database
-        float totalCalories = databaseHelper.getUserTotalCalories();
-
-        // Update the TextView to display the total calories
-        String caloriesText = String.format(Locale.getDefault(), "Current Calories Available for spending: %.0f", totalCalories);
-        caloriesTextView.setText(caloriesText);
-    }
-
-    public static Bitmap scalePixelArt(Bitmap bitmap, int scale) {
-        Bitmap scaledBitmap = Bitmap.createBitmap(bitmap.getWidth() * scale, bitmap.getHeight() * scale, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(scaledBitmap);
-        Paint paint = new Paint();
-        paint.setFilterBitmap(false); // Disables bilinear filtering
-        canvas.scale(scale, scale);
-        canvas.drawBitmap(bitmap, 0, 0, paint);
-        return scaledBitmap;
     }
 }
