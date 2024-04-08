@@ -43,9 +43,11 @@ public class PullActivity extends AppCompatActivity implements SensorEventListen
             // Load drawable items JSON
             JSONArray itemsArray = new JSONArray(loadJSONFromAssets());
             // Select a random item
-            JSONObject selectedItem = itemsArray.getJSONObject(new Random().nextInt(itemsArray.length()));
+//            JSONObject selectedItem = itemsArray.getJSONObject(new Random().nextInt(itemsArray.length()));
+            JSONObject selectedItem = itemsArray.getJSONObject(1);
             // Get the drawable resource identifier
             int drawableId = getResources().getIdentifier(selectedItem.getString("drawableName"), "drawable", getPackageName());
+           //scale the bitmap up
             Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), drawableId);
             Bitmap scaledBitmap = scalePixelArt(originalBitmap, 5);
             randomImageView.setImageBitmap(scaledBitmap);

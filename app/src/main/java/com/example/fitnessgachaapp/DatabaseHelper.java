@@ -35,6 +35,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String KEY_GACHA_ID = "_id";
     public static final String KEY_GACHA_NAME = "name";
     public static final String KEY_GACHA_SPRITE = "sprite";
+    public static final String KEY_GACHA_DUPE = "dupe";
 
     // SQL to create table
     private static final String CREATE_TABLE_TRACKING = "CREATE TABLE " +
@@ -58,7 +59,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             TABLE_GACHA + "(" +
             KEY_GACHA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
             KEY_GACHA_NAME + " TEXT," +
-            KEY_GACHA_SPRITE + " TEXT" +
+            KEY_GACHA_SPRITE + " TEXT," +
+            KEY_GACHA_DUPE + " INTEGER DEFAULT 0 " +
             ");";
 
     public DatabaseHelper(Context context) {
@@ -215,5 +217,35 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.update(TABLE_USER, values, null, null);
 
 
+    }
+    public void incrementDupeCount(int gachaId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Check if the gacha item with the specified ID exists
+        Cursor cursor = db.query(TABLE_GACHA, new String[]{KEY_GACHA_DUPE}, KEY_GACHA_ID + " = ?", new String[]{String.valueOf(gachaId)}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            // Gacha item exists, so increment the dupe count
+            @SuppressLint("Range") int dupeCount = cursor.getInt(cursor.getColumnIndex(KEY_GACHA_DUPE));
+            dupeCount++;
+
+            // Update the dupe count in the database
+            ContentValues values = new ContentValues();
+            values.put(KEY_GACHA_DUPE, dupeCount);
+
+            db.update(TABLE_GACHA, values, KEY_GACHA_ID + " = ?", new String[]{String.valueOf(gachaId)});
+        } else {
+            // Gacha item doesn't exist, so insert a new row with a dupe count of 1
+            ContentValues values = new ContentValues();
+            values.put(KEY_GACHA_ID, gachaId);
+            values.put(KEY_GACHA_DUPE, 1);
+
+            db.insert(TABLE_GACHA, null, values);
+        }
+
+        // Close cursor and database to free up resources
+        if (cursor != null) {
+            cursor.close();
+        }
+        db.close();
     }
 }
