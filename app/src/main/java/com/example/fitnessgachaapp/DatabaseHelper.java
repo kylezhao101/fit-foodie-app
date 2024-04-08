@@ -13,7 +13,7 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "fitnessTrackerDatabase";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     // Table Names
     public static final String TABLE_TRACKING = "tracking";
@@ -34,7 +34,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Gacha Table Columns
     public static final String KEY_GACHA_ID = "_id";
     public static final String KEY_GACHA_NAME = "name";
-    public static final String KEY_GACHA_SPRITE = "sprite";
+    private static final String KEY_GACHA_SPRITE_ID = "sprite_id";
     public static final String KEY_GACHA_DUPE = "dupe";
 
     // SQL to create table
@@ -59,7 +59,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             TABLE_GACHA + "(" +
             KEY_GACHA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
             KEY_GACHA_NAME + " TEXT," +
-            KEY_GACHA_SPRITE + " TEXT," +
+            KEY_GACHA_SPRITE_ID + " INTEGER," +
             KEY_GACHA_DUPE + " INTEGER DEFAULT 0 " +
             ");";
 
@@ -79,6 +79,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRACKING);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USER);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_GACHA);
         onCreate(db);
     }
 
@@ -192,57 +193,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void addGachaPull(String name, String sprite) {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        ContentValues values = new ContentValues();
-        values.put(KEY_GACHA_NAME, name);
-        values.put(KEY_GACHA_SPRITE, sprite);
+        // Check if the gacha item already exists
+        Cursor cursor = db.query(TABLE_GACHA, new String[] {KEY_GACHA_ID, KEY_GACHA_DUPE}, KEY_GACHA_NAME + " = ?", new String[]{name}, null, null, null);
 
-        db.insert(TABLE_GACHA, null, values);
-        db.close();
-    }
-
-    public void deductCalories(float calories) {
-        SQLiteDatabase db = null;
-
-        db = this.getWritableDatabase();
-
-        float currentTotalCalories = getUserTotalCalories();
-
-        float newTotalCalories = currentTotalCalories - calories;
-        newTotalCalories = Math.max(0, newTotalCalories);
-
-            // Update the user's total calories in the database
-        ContentValues values = new ContentValues();
-        values.put(KEY_USER_TOTAL_CALORIES, newTotalCalories);
-
-        db.update(TABLE_USER, values, null, null);
-
-
-    }
-    public void incrementDupeCount(int gachaId) {
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        // Check if the gacha item with the specified ID exists
-        Cursor cursor = db.query(TABLE_GACHA, new String[]{KEY_GACHA_DUPE}, KEY_GACHA_ID + " = ?", new String[]{String.valueOf(gachaId)}, null, null, null);
         if (cursor != null && cursor.moveToFirst()) {
-            // Gacha item exists, so increment the dupe count
-            @SuppressLint("Range") int dupeCount = cursor.getInt(cursor.getColumnIndex(KEY_GACHA_DUPE));
-            dupeCount++;
+            // If the item exists, increment the dupe count
+            @SuppressLint("Range") int gachaId = cursor.getInt(cursor.getColumnIndex(KEY_GACHA_ID));
+            @SuppressLint("Range") int dupeCount = cursor.getInt(cursor.getColumnIndex(KEY_GACHA_DUPE)) + 1;
 
-            // Update the dupe count in the database
             ContentValues values = new ContentValues();
             values.put(KEY_GACHA_DUPE, dupeCount);
 
             db.update(TABLE_GACHA, values, KEY_GACHA_ID + " = ?", new String[]{String.valueOf(gachaId)});
         } else {
-            // Gacha item doesn't exist, so insert a new row with a dupe count of 1
+            // If the item doesn't exist, insert a new row
             ContentValues values = new ContentValues();
-            values.put(KEY_GACHA_ID, gachaId);
-            values.put(KEY_GACHA_DUPE, 1);
-
+            values.put(KEY_GACHA_NAME, name);
+            values.put(KEY_GACHA_SPRITE_ID, sprite);
             db.insert(TABLE_GACHA, null, values);
         }
 
-        // Close cursor and database to free up resources
         if (cursor != null) {
             cursor.close();
         }

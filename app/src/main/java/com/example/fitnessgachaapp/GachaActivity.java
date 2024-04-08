@@ -108,7 +108,7 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
     private void updateCaloriesText() {
         float totalCalories = databaseHelper.getUserTotalCalories();
         String caloriesString = String.valueOf((int) totalCalories);
-        caloriesText.setText("Calories per pull: 10   Available Calories: " + caloriesString);
+        caloriesText.setText("Calories per pull: " +CALORIE_COST_PER_PULL +" Available Calories: " + caloriesString);
     }
     @Override
     public void onSensorChanged(SensorEvent event) {

@@ -29,10 +29,13 @@ public class PullActivity extends AppCompatActivity implements SensorEventListen
     private Button returnButton;
     private TextView foodText;
     private ImageView randomImageView;
+    private DatabaseHelper databaseHelper;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.pull_page);
+
+        databaseHelper = new DatabaseHelper(this);
 
         //layout setup
         returnButton = findViewById(R.id.returnButton);
@@ -45,13 +48,21 @@ public class PullActivity extends AppCompatActivity implements SensorEventListen
             // Select a random item
 //            JSONObject selectedItem = itemsArray.getJSONObject(new Random().nextInt(itemsArray.length()));
             JSONObject selectedItem = itemsArray.getJSONObject(1);
+
             // Get the drawable resource identifier
-            int drawableId = getResources().getIdentifier(selectedItem.getString("drawableName"), "drawable", getPackageName());
-           //scale the bitmap up
+            String itemName = selectedItem.getString("name");
+            String drawableName = selectedItem.getString("drawableName");
+            int drawableId = getResources().getIdentifier(drawableName, "drawable", getPackageName());
+
+            //scale the bitmap up
             Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), drawableId);
             Bitmap scaledBitmap = scalePixelArt(originalBitmap, 5);
             randomImageView.setImageBitmap(scaledBitmap);
+
             foodText.setText(selectedItem.getString("name"));
+
+            databaseHelper.addGachaPull(itemName, String.valueOf(drawableId));
+            Log.d("PullActivity", "Item added to database: " + itemName);
         } catch (Exception e) {
             Log.e("PullActivity", "Error loading or parsing drawable items JSON", e);
             Toast.makeText(this, "Failed to load items.", Toast.LENGTH_SHORT).show();
