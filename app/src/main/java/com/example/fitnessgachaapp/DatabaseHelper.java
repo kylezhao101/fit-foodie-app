@@ -248,4 +248,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return gachaItems;
     }
+
+    public int getUniqueGachaItemCount() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT COUNT(DISTINCT " + KEY_GACHA_NAME + ") FROM " + TABLE_GACHA, null);
+        int count = 0;
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0);
+        }
+        cursor.close();
+        return count;
+    }
 }
