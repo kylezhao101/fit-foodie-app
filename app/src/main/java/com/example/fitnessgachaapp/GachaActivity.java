@@ -163,7 +163,6 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
                     // Update progress bar based on shaking duration
                     if (summonBar.getProgress() == 100 && databaseHelper.getUserTotalCalories() >0) {
                         summonBar.setProgress(100);
-                        databaseHelper.updateUserTotalCalories(-CALORIE_COST_PER_PULL);
                         done.start();
                         Intent intent = new Intent(GachaActivity.this, PullActivity.class);
                         startActivity(intent);

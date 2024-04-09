@@ -30,7 +30,7 @@ public class PullActivity extends AppCompatActivity implements SensorEventListen
     private TextView foodText;
     private ImageView randomImageView;
     private DatabaseHelper databaseHelper;
-
+    private static final int CALORIE_COST_PER_PULL = 200;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.pull_page);
@@ -43,6 +43,7 @@ public class PullActivity extends AppCompatActivity implements SensorEventListen
         randomImageView = findViewById(R.id.FoodImageView);
 
         try {
+            databaseHelper.updateUserTotalCalories(-CALORIE_COST_PER_PULL);
             // Load drawable items JSON
             JSONArray itemsArray = new JSONArray(loadJSONFromAssets());
             // Select a random item
