@@ -1,10 +1,12 @@
 package com.example.fitnessgachaapp;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -19,8 +21,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 public class GachaActivity extends AppCompatActivity implements SensorEventListener {
     //will use SQlite to pull from image database for gacha characters.
@@ -30,11 +42,12 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
     private Button summonButton;
     private Button calorieButton;
     private TextView textMove;
+    private TextView gachaTitle;
     private TextView caloriesText;
     private boolean sensorOn = false;
     private long startTime = 0;
     private DatabaseHelper databaseHelper;
-    private static final float CALORIE_COST_PER_PULL = -1;
+    private static final int CALORIE_COST_PER_PULL = 200;
     private MediaPlayer done;
     private MediaPlayer cooking;
 
@@ -51,10 +64,20 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
         summonButton = findViewById(R.id.summonButton);
         calorieButton = findViewById(R.id.calorieButton);
         textMove =  findViewById(R.id.textMove);
+        gachaTitle =  findViewById(R.id.gachaTextView);
         caloriesText =  findViewById(R.id.calorieTextView);
+        Typeface Minecraft = ResourcesCompat.getFont(this, R.font.minecraft_font);
+        gachaTitle.setTypeface(Minecraft);
+        textMove.setTypeface(Minecraft);
+        caloriesText.setTypeface(Minecraft);
         summonBar = findViewById(R.id.summonBar);
         done = MediaPlayer.create(this, R.raw.cook);
         cooking = MediaPlayer.create(this, R.raw.cooking);
+
+
+        databaseHelper = new DatabaseHelper(this);
+        List<GachaItem> gachaCollection = databaseHelper.getAllGachaItems();
+
 
 
         // Setup BottomNavigationView
@@ -93,7 +116,7 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
                     if (sensorOn) {
                         // Register the sensor listener to start detecting shakes
                         sensorManager.registerListener(GachaActivity.this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-                        textMove.setText("Shake to summon!");
+                        textMove.setText("Shake to Cook!");
                     } else {
                         // Unregister the sensor listener to stop detecting shakes
                         sensorManager.unregisterListener(GachaActivity.this);
@@ -106,10 +129,10 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
             }
         });
 
-        calorieButton.setOnClickListener(new View.OnClickListener() {
+        gachaTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                databaseHelper.updateUserTotalCalories(+1);
+                databaseHelper.updateUserTotalCalories(+100);
                 updateCaloriesText();
             }
         });
@@ -119,7 +142,7 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
     private void updateCaloriesText() {
         float totalCalories = databaseHelper.getUserTotalCalories();
         String caloriesString = String.valueOf((int) totalCalories);
-        caloriesText.setText("Calories per pull: " +CALORIE_COST_PER_PULL +" Available Calories: " + caloriesString);
+        caloriesText.setText("Calories per pull: " +CALORIE_COST_PER_PULL +"\nAvailable Calories: " + caloriesString);
     }
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -140,7 +163,7 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
                     // Update progress bar based on shaking duration
                     if (summonBar.getProgress() == 100 && databaseHelper.getUserTotalCalories() >0) {
                         summonBar.setProgress(100);
-                        databaseHelper.updateUserTotalCalories(CALORIE_COST_PER_PULL);
+                        databaseHelper.updateUserTotalCalories(-CALORIE_COST_PER_PULL);
                         done.start();
                         Intent intent = new Intent(GachaActivity.this, PullActivity.class);
                         startActivity(intent);
@@ -154,6 +177,26 @@ public class GachaActivity extends AppCompatActivity implements SensorEventListe
                 // if phone is still
                 startTime = System.currentTimeMillis();
             }
+        }
+    }
+
+    private int countItemsFromJson(Context context, String filename) {
+        try {
+            // Open the drawable_items.json file from assets folder
+            InputStream is = context.getAssets().open(filename);
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            // Convert the buffer into a string
+            String json = new String(buffer, "UTF-8");
+
+            // Parse the JSON string to get the count of items
+            JSONArray jsonArray = new JSONArray(json);
+            return jsonArray.length(); // Return the number of items
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+            return 0; // In case of an error, return 0
         }
     }
 

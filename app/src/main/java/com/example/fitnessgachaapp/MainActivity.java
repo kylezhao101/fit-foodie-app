@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
         List<GachaItem> gachaCollection = databaseHelper.getAllGachaItems();
 
         // Setup the RecyclerView with a GridLayoutManager
-        RecyclerView recyclerView = findViewById(R.id.gacha_collection_recycler_view);
+        RecyclerView recyclerView = findViewById(R.id.gachaView);
         int numberOfColumns = 3;
         recyclerView.setLayoutManager(new GridLayoutManager(this, numberOfColumns));
         recyclerView.setAdapter(new GachaAdapter(gachaCollection, this));
