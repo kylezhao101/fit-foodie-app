@@ -5,103 +5,96 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout2"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <Button
+            android:id="@+id/calorieButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="35dp"
+            android:layout_marginEnd="272dp"
+            android:layout_marginBottom="21dp"
+            android:text="+1 calorie"
+            android:visibility="gone"
+            tools:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/bannerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:srcCompat="@drawable/gachabanner" />
+
+    </FrameLayout>
+
     <LinearLayout
         android:id="@+id/linearLayout2"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="2"
+        android:gravity="center|center_horizontal"
         android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation">
 
-        <FrameLayout
+        <TextView
+            android:id="@+id/gachaTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center_horizontal"
+            android:paddingTop="16dp"
+            android:text="Food Gacha"
+            android:textColor="#000000"
+            android:textSize="34sp" />
+
+        <TextView
+            android:id="@+id/calorieTextView"
+            android:layout_width="235dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginStart="176dp"
+            android:layout_marginEnd="177dp"
+            android:gravity="center_horizontal"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:text="Calories: " />
+
+        <Button
+            android:id="@+id/summonButton"
+            android:layout_width="136dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginStart="160dp"
+            android:layout_marginEnd="160dp"
+            android:layout_marginBottom="0dp"
+            android:text="Summon!" />
+
+        <ProgressBar
+            android:id="@+id/summonBar"
+            style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Horizontal"
+            android:layout_width="336dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="0dp"
+            android:indeterminateBehavior="repeat"
+            android:paddingTop="10dp"
+            android:progressTint="#00FFC4" />
+
+        <TextView
+            android:id="@+id/textMove"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1">
-
-            <Button
-                android:id="@+id/calorieButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="35dp"
-                android:layout_marginEnd="272dp"
-                android:layout_marginBottom="21dp"
-                android:text="+1 calorie"
-                android:visibility="gone"
-                tools:visibility="gone" />
-
-            <ImageView
-                android:id="@+id/bannerView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:srcCompat="@drawable/gachabanner" />
-
-        </FrameLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/gachaTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center_horizontal"
-                android:paddingTop="16dp"
-                android:text="Food Gacha"
-                android:textColor="#000000"
-                android:textSize="34sp" />
-
-            <TextView
-                android:id="@+id/calorieTextView"
-                android:layout_width="235dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginStart="176dp"
-                android:layout_marginEnd="177dp"
-                android:gravity="center_horizontal"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:text="Calories: " />
-
-            <Button
-                android:id="@+id/summonButton"
-                android:layout_width="136dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginStart="160dp"
-                android:layout_marginEnd="160dp"
-                android:layout_marginBottom="0dp"
-                android:text="Summon!" />
-
-            <ProgressBar
-                android:id="@+id/summonBar"
-                style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Horizontal"
-                android:layout_width="336dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="0dp"
-                android:indeterminateBehavior="repeat"
-                android:paddingTop="10dp"
-                android:progressTint="#00FFC4" />
-
-            <TextView
-                android:id="@+id/textMove"
-                android:layout_width="200dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginStart="201dp"
-                android:layout_marginTop="0dp"
-                android:layout_marginEnd="202dp"
-                android:gravity="center_horizontal"
-                android:textColor="#02DD98"
-                android:textSize="24sp" />
-
-        </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="0dp"
+            android:gravity="center|center_vertical"
+            android:textColor="#02DD98"
+            android:textSize="24sp" />
 
     </LinearLayout>
 
